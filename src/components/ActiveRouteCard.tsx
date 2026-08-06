@@ -1,6 +1,5 @@
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import { CATEGORY_LABELS } from "../constants";
 import {
   PointOfInterest,
@@ -11,6 +10,7 @@ import {
   formatDurationMinutes,
 } from "../utils/format";
 import { getSegmentColor } from "../utils/routeColors";
+import { useTranslation } from "react-i18next";
 
 interface ActiveRouteCardProps {
   isVisible: boolean;
@@ -29,6 +29,9 @@ export default function ActiveRouteCard({
   onNextStop,
   onStopRoute,
 }: ActiveRouteCardProps) {
+  // i18n
+  const { t } = useTranslation();
+
   if (!isVisible || segments.length === 0) {
     return null;
   }
@@ -63,19 +66,19 @@ export default function ActiveRouteCard({
           <View className="flex-row items-start justify-between">
             <View className="flex-1 pr-3">
               <Text className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Næste stop
+                {t("Næste stop")}
               </Text>
 
               <Text className="mt-1 text-xl font-bold text-slate-900">
                 {isReturnToStart
-                  ? "Tilbage til start"
-                  : destination?.name ?? "Næste stop"}
+                  ? t("Tilbage til start")
+                  : destination?.name ?? t("Næste stop")}
               </Text>
 
               {destination && (
                 <Text className="mt-1 text-sm text-slate-500">
                   Stop {currentStopIndex + 1} ·{" "}
-                  {CATEGORY_LABELS[destination.category]}
+                  {t(CATEGORY_LABELS[destination.category])}
                 </Text>
               )}
             </View>
@@ -98,7 +101,7 @@ export default function ActiveRouteCard({
           <View className="mt-4 flex-row justify-between rounded-2xl bg-slate-50 p-4">
             <View>
               <Text className="text-xs uppercase text-slate-500">
-                Distance
+                {t("Distance")}
               </Text>
 
               <Text className="mt-1 text-lg font-bold text-slate-900">
@@ -110,7 +113,7 @@ export default function ActiveRouteCard({
 
             <View className="items-end">
               <Text className="text-xs uppercase text-slate-500">
-                Estimeret tid
+                {t("Estimeret tid")}
               </Text>
 
               <Text className="mt-1 text-lg font-bold text-slate-900">
@@ -127,7 +130,7 @@ export default function ActiveRouteCard({
               className="flex-1 items-center rounded-2xl bg-slate-100 py-3 active:bg-slate-200"
             >
               <Text className="font-semibold text-slate-700">
-                Afslut
+                {t("Afslut")}
               </Text>
             </Pressable>
 
@@ -137,8 +140,8 @@ export default function ActiveRouteCard({
             >
               <Text className="font-bold text-white">
                 {isFinalSegment
-                  ? "Afslut tur"
-                  : "Næste stop"}
+                  ? t("Afslut tur")
+                  : t("Næste stop")}
               </Text>
             </Pressable>
           </View>

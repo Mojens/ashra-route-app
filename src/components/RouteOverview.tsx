@@ -9,6 +9,7 @@ import {
   formatDurationMinutes,
 } from "../utils/format";
 import { getSegmentColor } from "../utils/routeColors";
+import { useTranslation } from "react-i18next";
 
 interface RouteOverviewProps {
   waypoints: PointOfInterest[];
@@ -22,11 +23,11 @@ export default function RouteOverview({
   if (segments.length === 0) {
     return null;
   }
-
+  const { t } = useTranslation();
   return (
     <View>
       <Text className="mb-4 text-base font-bold text-slate-900">
-        Din rute
+        {t("Din rute")}
       </Text>
 
       {segments.map((segment, index) => {
@@ -59,16 +60,16 @@ export default function RouteOverview({
             <View className="ml-3 flex-1 pb-4">
               <Text className="font-semibold text-slate-900">
                 {isReturnSegment
-                  ? "Tilbage til start"
+                  ? t("Tilbage til start")
                   : destination?.name ??
-                    CATEGORY_LABELS[
+                    t(CATEGORY_LABELS[
                       destination?.category ?? "park"
-                    ]}
+                    ])}
               </Text>
 
               {!isReturnSegment && destination && (
                 <Text className="mt-0.5 text-sm text-slate-500">
-                  {CATEGORY_LABELS[destination.category]}
+                  {t(CATEGORY_LABELS[destination.category])}
                 </Text>
               )}
 

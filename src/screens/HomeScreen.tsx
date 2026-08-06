@@ -31,8 +31,11 @@ import RouteOverviewCard from "../components/RouteOverviewCard";
 import ActiveRouteCard from "../components/ActiveRouteCard";
 import RouteSuggestionsModal from "../components/RouteSuggestionsModal";
 import { GeneratedRoutePlan } from "../services/routePlanner";
+import { useTranslation } from "react-i18next";
 
 export default function HomeScreen() {
+  // i18n
+  const { t } = useTranslation();
   // RouteOverviewCard state
   const [isRouteOverviewExpanded, setIsRouteOverviewExpanded] =
     useState(false);
@@ -127,8 +130,8 @@ export default function HomeScreen() {
   const handleStartRoute = (): void => {
     if (routeSegments.length === 0) {
       Alert.alert(
-        "Ingen rute",
-        "Generér en rute, før du starter turen.",
+        t("Ingen rute"),
+        t("Generér en rute, før du starter turen."),
       );
       return;
     }
@@ -148,8 +151,8 @@ export default function HomeScreen() {
       setCurrentStopIndex(0);
 
       Alert.alert(
-        "Turen er færdig",
-        "Godt gået! Du er tilbage ved start.",
+        t("Turen er færdig"),
+        t("Godt gået! Du er tilbage ved start."),
       );
 
       return;
@@ -184,7 +187,7 @@ export default function HomeScreen() {
 
       if (permission.status !== "granted") {
         setErrorMessage(
-          "Appen skal have adgang til din lokation.",
+          t("Appen skal have adgang til din lokation."),
         );
         return;
       }
@@ -204,12 +207,12 @@ export default function HomeScreen() {
       });
     } catch (error) {
       console.error(
-        "Kunne ikke hente lokationen:",
+        t("Kunne ikke hente lokationen:"),
         error,
       );
 
       setErrorMessage(
-        "Din lokation kunne ikke hentes.",
+        t("Din lokation kunne ikke hentes."),
       );
     }
   };
@@ -230,8 +233,8 @@ export default function HomeScreen() {
   const handleShowRouteSuggestions = (): void => {
     if (routeSuggestions.length === 0) {
       Alert.alert(
-        "Ingen ruteforslag",
-        "Generér først nogle ruteforslag.",
+        t("Ingen ruteforslag"),
+        t("Generér først nogle ruteforslag."),
       );
       return;
     }
@@ -299,7 +302,7 @@ export default function HomeScreen() {
 
       if (suggestions.length === 0) {
         throw new Error(
-          "Der blev ikke fundet nogen ruter.",
+          t("Der blev ikke fundet nogen ruter."),
         );
       }
 
@@ -320,7 +323,7 @@ export default function HomeScreen() {
       setIsRouteSuggestionsVisible(true);
     } catch (error) {
       console.error(
-        "Kunne ikke generere ruter:",
+        t("Kunne ikke generere ruter:"),
         error,
       );
 
@@ -328,10 +331,10 @@ export default function HomeScreen() {
         routePlannerError ??
         (error instanceof Error
           ? error.message
-          : "Der opstod en ukendt fejl.");
+          : t("Der opstod en ukendt fejl."));
 
       Alert.alert(
-        "Ruterne kunne ikke genereres",
+        t("Ruterne kunne ikke genereres"),
         message,
       );
     }
@@ -349,7 +352,7 @@ export default function HomeScreen() {
           onPress={() => void loadCurrentLocation()}
         >
           <Text className="font-semibold text-white">
-            Prøv igen
+            {t("Prøv igen")}
           </Text>
         </Pressable>
       </View>
@@ -362,7 +365,7 @@ export default function HomeScreen() {
         <ActivityIndicator size="large" />
 
         <Text className="mt-3 text-base text-slate-700">
-          Finder din position...
+          {t("Finder din position...")}
         </Text>
       </View>
     );
@@ -407,7 +410,6 @@ export default function HomeScreen() {
             />
           )}
       </MapView>
-
       <RouteOverviewCard
         waypoints={selectedWaypoints}
         segments={routeSegments}

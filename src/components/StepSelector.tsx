@@ -1,5 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 import { STEP_OPTIONS } from "../constants";
+import { useTranslation } from "react-i18next";
 
 interface StepSelectorProps {
   selectedSteps: number;
@@ -10,10 +11,11 @@ export default function StepSelector({
   selectedSteps,
   onSelectSteps,
 }: StepSelectorProps) {
+  const { t } = useTranslation();
   return (
     <View>
       <Text className="mb-3 text-base font-semibold text-slate-900">
-        Hvor langt vil du gå?
+        {t("Hvor langt vil du gå?")}
       </Text>
 
       <View className="flex-row gap-2">
@@ -50,7 +52,7 @@ export default function StepSelector({
                     : "text-slate-400",
                 ].join(" ")}
               >
-                skridt
+                {t("skridt")}
               </Text>
             </Pressable>
           );

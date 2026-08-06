@@ -6,7 +6,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import { useTranslation } from "react-i18next";
 import { CATEGORY_LABELS } from "../constants";
 import { GeneratedRoutePlan } from "../services/routePlanner";
 import {
@@ -29,6 +29,7 @@ export default function RouteSuggestionsModal({
   onSelectRoute,
   onClose,
 }: RouteSuggestionsModalProps) {
+    const { t } = useTranslation();
   return (
     <Modal
       visible={visible}
@@ -40,11 +41,11 @@ export default function RouteSuggestionsModal({
         <View className="flex-row items-center justify-between px-5 py-4">
           <View>
             <Text className="text-2xl font-bold text-slate-900">
-              Vælg en rute
+              {t("Vælg en rute")}
             </Text>
 
             <Text className="mt-1 text-sm text-slate-500">
-              Vælg det ruteforslag, der passer dig bedst
+              {t("Vælg det ruteforslag, der passer dig bedst")}
             </Text>
           </View>
 
@@ -89,6 +90,7 @@ function RouteSuggestionCard({
   suggestionNumber,
   onPress,
 }: RouteSuggestionCardProps) {
+      const { t } = useTranslation();
   return (
     <Pressable
       onPress={onPress}
@@ -97,7 +99,7 @@ function RouteSuggestionCard({
       <View className="flex-row items-start justify-between">
         <View className="flex-1 pr-3">
           <Text className="text-lg font-bold text-slate-900">
-            Rute {suggestionNumber}
+            {t("Rute")} {suggestionNumber}
           </Text>
 
           <Text className="mt-1 text-sm text-slate-500">
@@ -105,7 +107,7 @@ function RouteSuggestionCard({
               .map(
                 ({ category, place }) =>
                   place.name ||
-                  CATEGORY_LABELS[category],
+                  t(CATEGORY_LABELS[category]),
               )
               .join(" → ")}
           </Text>
@@ -114,7 +116,7 @@ function RouteSuggestionCard({
         {suggestionNumber === 1 && (
           <View className="rounded-full bg-green-100 px-3 py-1">
             <Text className="text-xs font-bold text-green-700">
-              BEDSTE MATCH
+              {t("BEDSTE MATCH")}
             </Text>
           </View>
         )}
@@ -123,7 +125,7 @@ function RouteSuggestionCard({
       <View className="mt-4 flex-row justify-between rounded-2xl bg-slate-50 p-4">
         <View>
           <Text className="text-xs uppercase text-slate-500">
-            Distance
+            {t("Distance")}
           </Text>
 
           <Text className="mt-1 font-bold text-slate-900">
@@ -135,7 +137,7 @@ function RouteSuggestionCard({
 
         <View className="items-center">
           <Text className="text-xs uppercase text-slate-500">
-            Tid
+            {t("Tid")}
           </Text>
 
           <Text className="mt-1 font-bold text-slate-900">
@@ -147,7 +149,7 @@ function RouteSuggestionCard({
 
         <View className="items-end">
           <Text className="text-xs uppercase text-slate-500">
-            Forskel
+            {t("Forskel")}
           </Text>
 
           <Text className="mt-1 font-bold text-blue-600">
@@ -160,7 +162,7 @@ function RouteSuggestionCard({
 
       <View className="mt-4 items-center rounded-2xl bg-blue-600 py-3">
         <Text className="font-bold text-white">
-          Vælg denne rute
+          {t("Vælg denne rute")}
         </Text>
       </View>
     </Pressable>

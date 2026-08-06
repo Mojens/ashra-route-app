@@ -4,9 +4,10 @@ import {
   Text,
   View,
 } from "react-native";
-
+import { useTranslation } from "react-i18next";
 import { ROUTE_CATEGORIES } from "../constants";
 import { RouteCategory } from "../types/route";
+
 
 type MoveDirection = "left" | "right";
 
@@ -24,10 +25,11 @@ export default function CategorySelector({
   onToggleCategory,
   onMoveCategory,
 }: CategorySelectorProps) {
+  const { t } = useTranslation();
   return (
     <View>
       <Text className="mb-3 text-base font-semibold text-slate-900">
-        Hvad skal ruten gå forbi?
+        {t("Hvad skal ruten gå forbi?")}
       </Text>
 
       <ScrollView
@@ -66,7 +68,7 @@ export default function CategorySelector({
                 {isSelected && (
                   <View className="rounded-full bg-blue-600 px-2 py-1">
                     <Text className="text-[10px] font-bold text-white">
-                      STOP {selectedIndex + 1}
+                      {t("STOP")} {selectedIndex + 1}
                     </Text>
                   </View>
                 )}
@@ -116,8 +118,7 @@ export default function CategorySelector({
 
       {selectedCategories.length > 1 && (
         <Text className="mt-2 text-xs text-slate-500">
-          Brug pilene til at ændre rækkefølgen på
-          stoppene.
+          {t("Brug pilene til at ændre rækkefølgen på stoppene.")}
         </Text>
       )}
     </View>

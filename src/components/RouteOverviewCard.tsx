@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import { useTranslation } from "react-i18next";
 import { PointOfInterest, RouteSegment } from "../types/route";
 import RouteOverview from "./RouteOverview";
 
@@ -23,6 +23,7 @@ export default function RouteOverviewCard({
   onStartRoute,
   onShowOtherRoutes,
 }: RouteOverviewCardProps) {
+    const { t } = useTranslation();
   if (!isVisible) {
     return null;
   }
@@ -67,12 +68,12 @@ export default function RouteOverviewCard({
           <View className="mb-3 flex-row items-center justify-between">
             <View>
               <Text className="text-lg font-bold text-slate-900">
-                Ruteoversigt
+                {t("Ruteoversigt")}
               </Text>
 
               <Text className="mt-0.5 text-sm text-slate-500">
                 {waypoints.length}{" "}
-                {waypoints.length === 1 ? "stop" : "stop"}
+                {waypoints.length === 1 ? t("stop") : t("stop")}
               </Text>
             </View>
             {onShowOtherRoutes && (
@@ -81,7 +82,7 @@ export default function RouteOverviewCard({
                 className="mt-3 items-center rounded-2xl bg-slate-100 py-3 px-3 active:bg-slate-200"
               >
                 <Text className="font-semibold text-slate-700">
-                  Se andre ruter
+                  {t("Se andre ruter")}
                 </Text>
               </Pressable>
             )}
@@ -112,7 +113,7 @@ export default function RouteOverviewCard({
                 className="mt-3 items-center rounded-2xl bg-blue-600 py-4 active:bg-blue-700"
               >
                 <Text className="text-base font-bold text-white">
-                  Start tur
+                  {t("Start tur")}
                 </Text>
               </Pressable>
             )}

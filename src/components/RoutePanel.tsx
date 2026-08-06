@@ -1,6 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import { useTranslation } from "react-i18next";
 import CategorySelector from "./CategorySelector";
 import StepSelector from "./StepSelector";
 import { RouteCategory } from "../types/route";
@@ -41,6 +41,7 @@ export default function RoutePanel({
   onToggleCollapsed,
   onGenerateRoute,
 }: RoutePanelProps) {
+  const { t } = useTranslation();
   return (
     <SafeAreaView
       className="absolute inset-0 justify-end"
@@ -51,12 +52,12 @@ export default function RoutePanel({
         <View className="flex-row items-center justify-between">
           <View className="flex-1 pr-3">
             <Text className="text-xl font-bold text-slate-900">
-              Planlæg din gåtur
+              {t("Planlæg din gåtur")}
             </Text>
 
             {!isCollapsed && (
               <Text className="mt-1 text-sm text-slate-500">
-                Vælg antal skridt og steder på ruten
+                {t("Vælg antal skridt og steder på ruten")}
               </Text>
             )}
           </View>
@@ -103,25 +104,26 @@ function CollapsedSummary({
   selectedSteps,
   selectedCategories,
 }: CollapsedSummaryProps) {
+   const { t } = useTranslation();
   return (
     <View className="mt-3 flex-row items-center justify-between">
       <View>
         <Text className="text-sm text-slate-500">
-          Valgt rute
+          {t("Valgt rute")}
         </Text>
 
         <Text className="font-semibold text-slate-900">
-          {formatSteps(selectedSteps)} skridt
+          {formatSteps(selectedSteps)} {t("skridt")}
         </Text>
       </View>
 
       <View className="items-end">
         <Text className="text-sm text-slate-500">
-          {selectedCategories.length} stop
+          {selectedCategories.length} {t("stop")}
         </Text>
 
         <Text className="text-sm font-medium text-blue-600">
-          {stepsToKm(selectedSteps)} km
+          {stepsToKm(selectedSteps)} {t("km")}
         </Text>
       </View>
     </View>
@@ -154,6 +156,7 @@ function ExpandedContent({
   onMoveCategory,
   onGenerateRoute,
 }: ExpandedContentProps) {
+   const { t } = useTranslation();
   return (
     <>
       <View className="mt-4">
@@ -193,8 +196,8 @@ function ExpandedContent({
       >
         <Text className="text-base font-bold text-white">
           {isGeneratingRoute
-            ? "Genererer rute..."
-            : "Generér rute"}
+            ? t("Genererer rute...")
+            : t("Generér rute")}
         </Text>
       </Pressable>
     </>
@@ -206,25 +209,26 @@ function EstimatedRouteSummary({
 }: {
   selectedSteps: number;
 }) {
+   const { t } = useTranslation();
   return (
     <View className="mt-4 flex-row justify-between rounded-2xl bg-blue-50 p-4">
       <View>
         <Text className="text-xs uppercase tracking-wide text-slate-500">
-          Distance
+          {t("Distance")}
         </Text>
 
         <Text className="text-xl font-bold text-blue-600">
-          {stepsToKm(selectedSteps)} km
+          {stepsToKm(selectedSteps)} {t("km")}
         </Text>
       </View>
 
       <View className="items-end">
         <Text className="text-xs uppercase tracking-wide text-slate-500">
-          Estimeret tid
+          {t("Estimeret tid")}
         </Text>
 
         <Text className="text-xl font-bold text-blue-600">
-          {stepsToMinutes(selectedSteps)} min
+          {stepsToMinutes(selectedSteps)} {t("min")}
         </Text>
       </View>
     </View>
@@ -240,11 +244,12 @@ function GeneratedRouteSummary({
   distanceMeters,
   durationSeconds,
 }: GeneratedRouteSummaryProps) {
+   const { t } = useTranslation();
   return (
     <View className="mt-4 flex-row justify-between rounded-2xl bg-green-50 p-4">
       <View>
         <Text className="text-xs uppercase text-slate-500">
-          Faktisk distance
+          {t("Faktisk distance")}
         </Text>
 
         <Text className="text-lg font-bold text-green-700">
@@ -254,7 +259,7 @@ function GeneratedRouteSummary({
 
       <View className="items-end">
         <Text className="text-xs uppercase text-slate-500">
-          Rutetid
+          {t("Rutetid")}
         </Text>
 
         <Text className="text-lg font-bold text-green-700">
