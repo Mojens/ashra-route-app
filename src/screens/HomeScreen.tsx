@@ -379,8 +379,7 @@ export default function HomeScreen() {
         segments={routeSegments}
         isVisible={
           isPanelCollapsed &&
-          !isRouteActive &&
-          routeSegments.length > 0
+          !isRouteActive
         }
         isExpanded={isRouteOverviewExpanded}
         onToggleExpanded={() =>

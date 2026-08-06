@@ -9,6 +9,11 @@ export const ROUTE_CONFIG = {
   nearbyPlacesCacheDurationMs: 10 * 60 * 1000,
   nearbyPlacesCacheMaximumMovementMeters: 500,
 
+  freeRoundTrip: {
+    points: 5,
+    defaultSeed: 1,
+  },
+
   openRouteService: {
     baseUrl:
       "https://api.openrouteservice.org/v2/directions",
@@ -26,4 +31,4 @@ export const ROUTE_CONFIG = {
     timeoutMs: 15000,
     queryTimeoutSeconds: 20,
   },
-  } as const;
+} as const;

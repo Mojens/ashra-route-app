@@ -11,7 +11,7 @@ import {
   RouteCategory,
 } from "../types/route";
 import { stepsToKm } from "../utils/steps";
-
+import { generateFreeRoundTripRoute } from "../services/routeService";
 import { useNearbyPlaces } from "./useNearbyPlaces";
 
 export function useRoutePlanner() {
@@ -43,17 +43,30 @@ export function useRoutePlanner() {
       selectedCategories: RouteCategory[];
       selectedSteps: number;
     }): Promise<GeneratedRoutePlan> => {
-      if (selectedCategories.length === 0) {
-        throw new Error(
-          "Vælg mindst én kategori til ruten.",
-        );
-      }
 
       setIsPlanningRoute(true);
 
       try {
         const targetDistanceMeters =
           stepsToKm(selectedSteps) * 1000;
+
+        if (selectedCategories.length === 0) {
+          const route =
+            await generateFreeRoundTripRoute(
+              origin,
+              targetDistanceMeters,
+            );
+
+          return {
+            route,
+            waypoints: [],
+            targetDistanceMeters,
+            differenceMeters: Math.abs(
+              targetDistanceMeters -
+              route.distanceMeters,
+            ),
+          };
+        }
 
         const searchRadiusMeters =
           calculateSearchRadius(

@@ -163,3 +163,72 @@ export async function generateRoundTripRoute(
     [waypoint],
   );
 }
+
+export async function generateFreeRoundTripRoute(
+  origin: RouteCoordinate,
+  targetDistanceMeters: number,
+  seed = ROUTE_CONFIG.freeRoundTrip.defaultSeed,
+): Promise<GeneratedRoute> {
+  const apiKey =
+    process.env.EXPO_PUBLIC_ORS_API_KEY;
+
+  if (!apiKey) {
+    throw new Error(
+      "OpenRouteService API-nøglen mangler.",
+    );
+  }
+
+  const response =
+    await axios.post<OpenRouteServiceResponse>(
+      API_URL,
+      {
+        coordinates: [
+          [
+            origin.longitude,
+            origin.latitude,
+          ],
+        ],
+        options: {
+          round_trip: {
+            length: targetDistanceMeters,
+            points:
+              ROUTE_CONFIG.freeRoundTrip.points,
+            seed,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: apiKey,
+          "Content-Type": "application/json",
+        },
+        timeout:
+          ROUTE_CONFIG.openRouteService.timeoutMs,
+      },
+    );
+
+  const feature = response.data.features[0];
+
+  if (!feature) {
+    throw new Error(
+      "OpenRouteService returnerede ingen rundtur.",
+    );
+  }
+
+  const routeCoordinates =
+    feature.geometry.coordinates.map(
+      ([longitude, latitude]) => ({
+        latitude,
+        longitude,
+      }),
+    );
+
+  return {
+    coordinates: routeCoordinates,
+    distanceMeters:
+      feature.properties.summary.distance,
+    durationSeconds:
+      feature.properties.summary.duration,
+    segments: [],
+  };
+}
