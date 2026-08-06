@@ -1,14 +1,23 @@
-import { PointOfInterest } from "../../types/route";
+import {
+    GeneratedRoute,
+    PointOfInterest,
+} from "../../types/route";
 
 export interface PlannedDestination {
-  place: PointOfInterest;
-  targetDistanceMeters: number;
-  estimatedRoundTripMeters: number;
-  differenceMeters: number;
+    place: PointOfInterest;
+    targetDistanceMeters: number;
+    estimatedRoundTripMeters: number;
+    differenceMeters: number;
 }
 
 export interface ScoredDestination {
-  place: PointOfInterest;
-  estimatedRoundTripMeters: number;
-  differenceMeters: number;
+    place: PointOfInterest;
+    estimatedRoundTripMeters: number;
+    differenceMeters: number;
+}
+
+export interface TestedRouteCandidate {
+    place: PointOfInterest;
+    route: GeneratedRoute;
+    differenceMeters: number;
 }

@@ -16,13 +16,12 @@ import * as Location from "expo-location";
 
 import RoutePanel from "../components/RoutePanel";
 import { useNearbyPlaces } from "../hooks/useNearbyPlaces";
-import { generateRoundTripRoute } from "../services/routeService";
 import {
   PointOfInterest,
   RouteCategory,
   RouteCoordinate,
 } from "../types/route";
-import { chooseBestDestination } from "../services/routePlanner";
+import { planBestRoute } from "../services/routePlanner";
 import { stepsToKm } from "../utils/steps";
 
 export default function HomeScreen() {
@@ -156,14 +155,7 @@ export default function HomeScreen() {
         searchRadiusMeters,
       );
 
-      const plannedDestination =
-        chooseBestDestination(
-          start,
-          parks,
-          selectedSteps,
-        );
-
-      if (!plannedDestination) {
+      if (parks.length === 0) {
         Alert.alert(
           "Ingen park fundet",
           `Vi kunne ikke finde en park inden for ${(
@@ -174,12 +166,32 @@ export default function HomeScreen() {
         return;
       }
 
-      const park = plannedDestination.place;
+      const plannedRoute = await planBestRoute({
+        origin: start,
+        places: parks,
+        targetDistanceMeters,
+        candidateLimit: 3,
+      });
 
-      const route = await generateRoundTripRoute(
-        start,
-        park.coordinate,
-      );
+      if (!plannedRoute) {
+        Alert.alert(
+          "Ingen rute fundet",
+          "Vi kunne ikke generere en passende rute gennem en park.",
+        );
+
+        return;
+      }
+
+      const park = plannedRoute.place;
+      const route = plannedRoute.route;
+
+      console.log("Valgt rute:", {
+        park: park.name,
+        targetKm: targetDistanceMeters / 1000,
+        actualKm: route.distanceMeters / 1000,
+        differenceKm:
+          plannedRoute.differenceMeters / 1000,
+      });
 
       setSelectedPlace(park);
       setRouteCoordinates(route.coordinates);
