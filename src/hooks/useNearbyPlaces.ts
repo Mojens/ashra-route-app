@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-
+import { ROUTE_CONFIG } from "../constants";
 import { findNearbyPlaces } from "../services/overpassService";
 import {
   PointOfInterest,
@@ -21,8 +21,11 @@ type PlacesCache = Partial<
   Record<RouteCategory, CacheEntry>
 >;
 
-const CACHE_DURATION_MS = 10 * 60 * 1000;
-const CACHE_MAX_MOVEMENT_METERS = 500;
+const CACHE_DURATION_MS =
+  ROUTE_CONFIG.nearbyPlacesCacheDurationMs;
+
+const CACHE_MAX_MOVEMENT_METERS =
+  ROUTE_CONFIG.nearbyPlacesCacheMaximumMovementMeters;
 
 export function useNearbyPlaces() {
   const cacheRef = useRef<PlacesCache>({});

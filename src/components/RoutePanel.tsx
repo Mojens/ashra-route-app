@@ -1,10 +1,14 @@
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import StepSelector from "./StepSelector";
 import { RouteCategory } from "../types/route";
 import { stepsToKm, stepsToMinutes } from "../utils/steps";
 import CategorySelector from "./CategorySelector";
+import {
+  formatDistanceKm,
+  formatDurationMinutes,
+  formatSteps,
+} from "../utils/format";
 
 interface RoutePanelProps {
   selectedSteps: number;
@@ -104,7 +108,7 @@ function CollapsedSummary({
         <Text className="text-sm text-slate-500">Valgt rute</Text>
 
         <Text className="font-semibold text-slate-900">
-          {selectedSteps.toLocaleString("da-DK")} skridt
+          {formatSteps(selectedSteps)} skridt
         </Text>
       </View>
 
@@ -240,7 +244,7 @@ function GeneratedRouteSummary({
         </Text>
 
         <Text className="text-lg font-bold text-green-700">
-          {(distanceMeters / 1000).toFixed(1)} km
+          {formatDistanceKm(distanceMeters)}
         </Text>
       </View>
 
@@ -250,7 +254,7 @@ function GeneratedRouteSummary({
         </Text>
 
         <Text className="text-lg font-bold text-green-700">
-          {Math.round(durationSeconds / 60)} min
+          {formatDurationMinutes(durationSeconds)}
         </Text>
       </View>
     </View>

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-
+import { ROUTE_CONFIG } from "../constants";
 import { getLocationDescription } from "../services/geocodingService";
 import {
   buildCandidateRoutes,
@@ -13,10 +13,6 @@ import {
 import { stepsToKm } from "../utils/steps";
 
 import { useNearbyPlaces } from "./useNearbyPlaces";
-
-const PLACES_PER_CATEGORY = 4;
-const MAXIMUM_CANDIDATE_ROUTES = 20;
-const ROUTES_TO_TEST = 4;
 
 export function useRoutePlanner() {
   const {
@@ -100,9 +96,9 @@ export function useRoutePlanner() {
             selectedCategories,
             placesByCategory,
             placesPerCategory:
-              PLACES_PER_CATEGORY,
+              ROUTE_CONFIG.placesPerCategory,
             maximumRoutes:
-              MAXIMUM_CANDIDATE_ROUTES,
+              ROUTE_CONFIG.maximumCandidateRoutes,
           });
 
         if (candidateRoutes.length === 0) {
@@ -116,7 +112,8 @@ export function useRoutePlanner() {
             origin,
             candidates: candidateRoutes,
             targetDistanceMeters,
-            candidateLimit: ROUTES_TO_TEST,
+            candidateLimit:
+              ROUTE_CONFIG.routesToTest,
           });
 
         if (!plannedRoute) {
@@ -160,9 +157,9 @@ function calculateSearchRadius(
   targetDistanceMeters: number,
 ): number {
   return Math.min(
-    8000,
+    ROUTE_CONFIG.maximumSearchRadiusMeters,
     Math.max(
-      3000,
+      ROUTE_CONFIG.minimumSearchRadiusMeters,
       Math.ceil(targetDistanceMeters / 2),
     ),
   );

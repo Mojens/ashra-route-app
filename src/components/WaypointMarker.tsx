@@ -1,10 +1,8 @@
 import { Text, View } from "react-native";
 import { Marker } from "react-native-maps";
 
-import {
-  PointOfInterest,
-  RouteCategory,
-} from "../types/route";
+import { CATEGORY_LABELS } from "../constants";
+import { PointOfInterest } from "../types/route";
 
 interface WaypointMarkerProps {
   place: PointOfInterest;
@@ -21,7 +19,7 @@ export default function WaypointMarker({
     <Marker
       coordinate={place.coordinate}
       title={`Stop ${stopNumber}: ${place.name}`}
-      description={getCategoryLabel(place.category)}
+      description={CATEGORY_LABELS[place.category]}
       anchor={{ x: 0.5, y: 1 }}
       tracksViewChanges={false}
     >
@@ -45,19 +43,4 @@ export default function WaypointMarker({
       </View>
     </Marker>
   );
-}
-
-function getCategoryLabel(
-  category: RouteCategory,
-): string {
-  switch (category) {
-    case "park":
-      return "Park";
-
-    case "beach":
-      return "Strand";
-
-    case "supermarket":
-      return "Supermarked";
-  }
 }

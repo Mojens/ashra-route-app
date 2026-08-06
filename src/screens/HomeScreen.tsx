@@ -12,7 +12,6 @@ import MapView, {
   Region,
 } from "react-native-maps";
 import * as Location from "expo-location";
-
 import RoutePanel from "../components/RoutePanel";
 import WaypointMarker from "../components/WaypointMarker";
 import {
@@ -27,6 +26,7 @@ import {
   RouteCoordinate,
   RouteSegment,
 } from "../types/route";
+import { getSegmentColor } from "../utils/routeColors";
 
 export default function HomeScreen() {
   const mapRef = useRef<MapView>(null);
@@ -353,9 +353,3 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
 });
-
-function getSegmentColor(index: number): string {
-  return COLORS.routeSegments[
-    index % COLORS.routeSegments.length
-  ];
-}
