@@ -10,6 +10,7 @@ interface RouteOverviewCardProps {
   isVisible: boolean;
   isExpanded: boolean;
   onToggleExpanded: () => void;
+  onStartRoute: () => void;
 }
 
 export default function RouteOverviewCard({
@@ -18,6 +19,7 @@ export default function RouteOverviewCard({
   isVisible,
   isExpanded,
   onToggleExpanded,
+  onStartRoute,
 }: RouteOverviewCardProps) {
   if (!isVisible || segments.length === 0) {
     return null;
@@ -93,6 +95,14 @@ export default function RouteOverviewCard({
               waypoints={waypoints}
               segments={segments}
             />
+            <Pressable
+              onPress={onStartRoute}
+              className="mt-3 items-center rounded-2xl bg-blue-600 py-4 active:bg-blue-700"
+            >
+              <Text className="text-base font-bold text-white">
+                Start tur
+              </Text>
+            </Pressable>
           </ScrollView>
         </View>
       </View>

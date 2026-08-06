@@ -28,11 +28,17 @@ import {
 } from "../types/route";
 import { getSegmentColor } from "../utils/routeColors";
 import RouteOverviewCard from "../components/RouteOverviewCard";
+import ActiveRouteCard from "../components/ActiveRouteCard";
 
 export default function HomeScreen() {
   // RouteOverviewCard state
   const [isRouteOverviewExpanded, setIsRouteOverviewExpanded] =
     useState(false);
+  const [isRouteActive, setIsRouteActive] =
+    useState(false);
+
+  const [currentStopIndex, setCurrentStopIndex] =
+    useState(0);
 
   const mapRef = useRef<MapView>(null);
 
@@ -70,6 +76,47 @@ export default function HomeScreen() {
   const [selectedWaypoints, setSelectedWaypoints] = useState<
     PointOfInterest[]
   >([]);
+
+  const handleStartRoute = (): void => {
+    if (routeSegments.length === 0) {
+      Alert.alert(
+        "Ingen rute",
+        "Generér en rute, før du starter turen.",
+      );
+      return;
+    }
+
+    setCurrentStopIndex(0);
+    setIsRouteActive(true);
+    setIsRouteOverviewExpanded(false);
+    setIsPanelCollapsed(true);
+  };
+
+  const handleNextStop = (): void => {
+    if (
+      currentStopIndex >=
+      routeSegments.length - 1
+    ) {
+      setIsRouteActive(false);
+      setCurrentStopIndex(0);
+
+      Alert.alert(
+        "Turen er færdig",
+        "Godt gået! Du er tilbage ved start.",
+      );
+
+      return;
+    }
+
+    setCurrentStopIndex(
+      (current) => current + 1,
+    );
+  };
+
+  const handleStopRoute = (): void => {
+    setIsRouteActive(false);
+    setCurrentStopIndex(0);
+  };
 
   const {
     generateRoutePlan,
@@ -205,6 +252,8 @@ export default function HomeScreen() {
       setRouteDuration(result.route.durationSeconds);
       setIsPanelCollapsed(true);
       setIsRouteOverviewExpanded(false);
+      setIsRouteActive(false);
+      setCurrentStopIndex(0);
 
       console.log("Valgt rute:", {
         targetKm: result.targetDistanceMeters / 1000,
@@ -330,29 +379,46 @@ export default function HomeScreen() {
         segments={routeSegments}
         isVisible={
           isPanelCollapsed &&
+          !isRouteActive &&
           routeSegments.length > 0
         }
         isExpanded={isRouteOverviewExpanded}
         onToggleExpanded={() =>
-          setIsRouteOverviewExpanded((current) => !current)
+          setIsRouteOverviewExpanded(
+            (current) => !current,
+          )
         }
+        onStartRoute={handleStartRoute}
       />
 
-      <RoutePanel
-        selectedSteps={selectedSteps}
-        selectedCategories={selectedCategories}
-        isCollapsed={isPanelCollapsed}
-        isGeneratingRoute={isBusy}
-        routeDistance={routeDistance}
-        routeDuration={routeDuration}
-        onSelectSteps={setSelectedSteps}
-        onToggleCategory={toggleCategory}
-        onMoveCategory={moveCategory}
-        onToggleCollapsed={() =>
-          setIsPanelCollapsed((current) => !current)
-        }
-        onGenerateRoute={handleGenerateRoute}
+      <ActiveRouteCard
+        isVisible={isRouteActive}
+        currentStopIndex={currentStopIndex}
+        waypoints={selectedWaypoints}
+        segments={routeSegments}
+        onNextStop={handleNextStop}
+        onStopRoute={handleStopRoute}
       />
+
+      {!isRouteActive && (
+        <RoutePanel
+          selectedSteps={selectedSteps}
+          selectedCategories={selectedCategories}
+          isCollapsed={isPanelCollapsed}
+          isGeneratingRoute={isBusy}
+          routeDistance={routeDistance}
+          routeDuration={routeDuration}
+          onSelectSteps={setSelectedSteps}
+          onToggleCategory={toggleCategory}
+          onMoveCategory={moveCategory}
+          onToggleCollapsed={() =>
+            setIsPanelCollapsed(
+              (current) => !current,
+            )
+          }
+          onGenerateRoute={handleGenerateRoute}
+        />
+      )}
     </View>
   );
 }
