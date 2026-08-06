@@ -24,7 +24,35 @@ interface OverpassElement {
   };
   tags?: {
     name?: string;
+    "name:da"?: string;
+    official_name?: string;
+    short_name?: string;
+    alt_name?: string;
+    operator?: string;
+    brand?: string;
   };
+}
+
+function getPlaceName(
+  element: OverpassElement,
+  category: RouteCategory,
+): string {
+  const tags = element.tags;
+
+  const name =
+    tags?.["name:da"]?.trim() ||
+    tags?.name?.trim() ||
+    tags?.official_name?.trim() ||
+    tags?.short_name?.trim() ||
+    tags?.alt_name?.trim() ||
+    tags?.brand?.trim() ||
+    tags?.operator?.trim();
+
+  if (name) {
+    return name;
+  }
+
+  return getFallbackName(category);
 }
 
 interface OverpassResponse {
@@ -123,9 +151,7 @@ export async function findNearbyPlaces(
 
       return {
         id: element.id,
-        name:
-          element.tags?.name ??
-          getFallbackName(category),
+        name: getPlaceName(element, category),
         category,
         coordinate: {
           latitude,
@@ -176,10 +202,10 @@ function getFallbackName(
 ): string {
   switch (category) {
     case "park":
-      return "Unavngiven park";
+      return "Park";
 
     case "beach":
-      return "Unavngiven strand";
+      return "Strand";
 
     case "supermarket":
       return "Supermarked";

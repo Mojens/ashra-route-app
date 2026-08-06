@@ -21,8 +21,12 @@ import {
   RouteCategory,
   RouteCoordinate,
 } from "../types/route";
-import { planBestRoute } from "../services/routePlanner";
+import {
+  buildCandidateRoutes,
+  planBestRoute,
+} from "../services/routePlanner";
 import { stepsToKm } from "../utils/steps";
+import { getLocationDescription } from "../services/geocodingService";
 
 export default function HomeScreen() {
   const mapRef = useRef<MapView>(null);
@@ -166,6 +170,27 @@ export default function HomeScreen() {
         return;
       }
 
+      const candidateRoutes = buildCandidateRoutes({
+        selectedCategories: ["park"],
+        placesByCategory: {
+          park: parks,
+        },
+        placesPerCategory: 3,
+      });
+
+      console.log(
+        "Mulige ruter:",
+        candidateRoutes.map((candidate) => ({
+          id: candidate.id,
+          stops: candidate.waypoints.map(
+            (waypoint) => ({
+              category: waypoint.category,
+              name: waypoint.place.name,
+            }),
+          ),
+        })),
+      );
+
       const plannedRoute = await planBestRoute({
         origin: start,
         places: parks,
@@ -185,6 +210,18 @@ export default function HomeScreen() {
       const park = plannedRoute.place;
       const route = plannedRoute.route;
 
+      const parkName =
+        park.name !== "Park"
+          ? park.name
+          : await getLocationDescription(
+            park.coordinate,
+          );
+
+      const namedPark: PointOfInterest = {
+        ...park,
+        name: parkName ?? "Park",
+      };
+
       console.log("Valgt rute:", {
         park: park.name,
         targetKm: targetDistanceMeters / 1000,
@@ -193,14 +230,14 @@ export default function HomeScreen() {
           plannedRoute.differenceMeters / 1000,
       });
 
-      setSelectedPlace(park);
+      setSelectedPlace(namedPark);
       setRouteCoordinates(route.coordinates);
       setRouteDistance(route.distanceMeters);
       setRouteDuration(route.durationSeconds);
       setIsPanelCollapsed(true);
 
       mapRef.current?.fitToCoordinates(
-        [...route.coordinates, park.coordinate],
+        [...route.coordinates, namedPark.coordinate],
         {
           edgePadding: {
             top: 80,

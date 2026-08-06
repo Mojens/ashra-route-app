@@ -1,23 +1,34 @@
 import {
-    GeneratedRoute,
-    PointOfInterest,
+  GeneratedRoute,
+  PointOfInterest,
+  RouteCategory,
 } from "../../types/route";
 
 export interface PlannedDestination {
-    place: PointOfInterest;
-    targetDistanceMeters: number;
-    estimatedRoundTripMeters: number;
-    differenceMeters: number;
+  place: PointOfInterest;
+  targetDistanceMeters: number;
+  estimatedRoundTripMeters: number;
+  differenceMeters: number;
 }
 
 export interface ScoredDestination {
-    place: PointOfInterest;
-    estimatedRoundTripMeters: number;
-    differenceMeters: number;
+  place: PointOfInterest;
+  estimatedRoundTripMeters: number;
+  differenceMeters: number;
 }
 
 export interface TestedRouteCandidate {
-    place: PointOfInterest;
-    route: GeneratedRoute;
-    differenceMeters: number;
+  place: PointOfInterest;
+  route: GeneratedRoute;
+  differenceMeters: number;
+}
+
+export interface RouteWaypoint {
+  place: PointOfInterest;
+  category: RouteCategory;
+}
+
+export interface CandidateRoutePlan {
+  id: string;
+  waypoints: RouteWaypoint[];
 }
