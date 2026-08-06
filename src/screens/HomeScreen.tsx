@@ -15,18 +15,12 @@ import MapView, {
 import * as Location from "expo-location";
 
 import RoutePanel from "../components/RoutePanel";
-import { useNearbyPlaces } from "../hooks/useNearbyPlaces";
 import {
   PointOfInterest,
   RouteCategory,
   RouteCoordinate,
 } from "../types/route";
-import {
-  buildCandidateRoutes,
-  planBestRoute,
-} from "../services/routePlanner";
-import { stepsToKm } from "../utils/steps";
-import { getLocationDescription } from "../services/geocodingService";
+import { useRoutePlanner } from "../hooks/useRoutePlanner";
 
 export default function HomeScreen() {
   const mapRef = useRef<MapView>(null);
@@ -41,7 +35,6 @@ export default function HomeScreen() {
   >(["park"]);
 
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
-  const [isGeneratingRoute, setIsGeneratingRoute] = useState(false);
 
   const [routeCoordinates, setRouteCoordinates] = useState<
     RouteCoordinate[]
@@ -59,13 +52,10 @@ export default function HomeScreen() {
     useState<PointOfInterest | null>(null);
 
   const {
-    loadPlaces,
-    loadingCategories,
-    error: nearbyPlacesError,
-  } = useNearbyPlaces();
-
-  const isLoadingPlaces = loadingCategories.length > 0;
-  const isBusy = isGeneratingRoute || isLoadingPlaces;
+    generateRoutePlan,
+    isBusy,
+    errorMessage: routePlannerError,
+  } = useRoutePlanner();
 
   useEffect(() => {
     loadCurrentLocation();
@@ -125,135 +115,53 @@ export default function HomeScreen() {
       return;
     }
 
-    if (!selectedCategories.includes("park")) {
-      Alert.alert(
-        "Vælg park",
-        "Vælg Park for at generere denne rute.",
-      );
-
-      return;
-    }
-
-    const start: RouteCoordinate = {
+    const origin: RouteCoordinate = {
       latitude: region.latitude,
       longitude: region.longitude,
     };
 
     try {
-      setIsGeneratingRoute(true);
-
-      const targetDistanceMeters =
-        stepsToKm(selectedSteps) * 1000;
-
-      const searchRadiusMeters = Math.min(
-        8000,
-        Math.max(
-          3000,
-          Math.ceil(targetDistanceMeters / 2),
-        ),
-      );
-
-      const parks = await loadPlaces(
-        start,
-        "park",
-        searchRadiusMeters,
-      );
-
-      if (parks.length === 0) {
-        Alert.alert(
-          "Ingen park fundet",
-          `Vi kunne ikke finde en park inden for ${(
-            searchRadiusMeters / 1000
-          ).toFixed(1)} km.`,
-        );
-
-        return;
-      }
-
-      const candidateRoutes = buildCandidateRoutes({
-        selectedCategories: ["park"],
-        placesByCategory: {
-          park: parks,
-        },
-        placesPerCategory: 5,
-        maximumRoutes: 10,
+      const result = await generateRoutePlan({
+        origin,
+        selectedCategories,
+        selectedSteps,
       });
 
-      if (candidateRoutes.length === 0) {
-        Alert.alert(
-          "Ingen rutemuligheder",
-          "Vi kunne ikke bygge nogen mulige ruter.",
-        );
+      const firstWaypoint =
+        result.waypoints[0]?.place ?? null;
 
-        return;
-      }
-
-      const plannedRoute = await planBestRoute({
-        origin: start,
-        candidates: candidateRoutes,
-        targetDistanceMeters,
-        candidateLimit: 3,
-      });
-
-      if (!plannedRoute) {
-        Alert.alert(
-          "Ingen rute fundet",
-          "Vi kunne ikke generere en passende rute.",
-        );
-
-        return;
-      }
-
-      const route = plannedRoute.route;
-      const selectedWaypoints = plannedRoute.waypoints;
-      const selectedPark = selectedWaypoints[0]?.place;
-
-      if (!selectedPark) {
-        Alert.alert(
-          "Ingen destination fundet",
-          "Ruten indeholder ingen gyldig destination.",
-        );
-
-        return;
-      }
-
-      const parkName =
-        selectedPark.name !== "Park"
-          ? selectedPark.name
-          : await getLocationDescription(
-            selectedPark.coordinate,
-          );
-
-      const namedPark: PointOfInterest = {
-        ...selectedPark,
-        name: parkName ?? "Park",
-      };
+      setSelectedPlace(firstWaypoint);
+      setRouteCoordinates(
+        result.route.coordinates,
+      );
+      setRouteDistance(
+        result.route.distanceMeters,
+      );
+      setRouteDuration(
+        result.route.durationSeconds,
+      );
+      setIsPanelCollapsed(true);
 
       console.log("Valgt rute:", {
-        targetKm: targetDistanceMeters / 1000,
-        actualKm: route.distanceMeters / 1000,
+        targetKm:
+          result.targetDistanceMeters / 1000,
+        actualKm:
+          result.route.distanceMeters / 1000,
         differenceKm:
-          plannedRoute.differenceMeters / 1000,
-        waypoints: selectedWaypoints.map(
-          (waypoint) => ({
-            category: waypoint.category,
-            name: waypoint.place.name,
+          result.differenceMeters / 1000,
+        waypoints: result.waypoints.map(
+          ({ category, place }) => ({
+            category,
+            name: place.name,
           }),
         ),
       });
 
-      setSelectedPlace(namedPark);
-      setRouteCoordinates(route.coordinates);
-      setRouteDistance(route.distanceMeters);
-      setRouteDuration(route.durationSeconds);
-      setIsPanelCollapsed(true);
-
       mapRef.current?.fitToCoordinates(
         [
-          ...route.coordinates,
-          ...selectedWaypoints.map(
-            (waypoint) =>
-              waypoint.place.coordinate,
+          ...result.route.coordinates,
+          ...result.waypoints.map(
+            ({ place }) => place.coordinate,
           ),
         ],
         {
@@ -273,7 +181,7 @@ export default function HomeScreen() {
       );
 
       const message =
-        nearbyPlacesError ??
+        routePlannerError ??
         (error instanceof Error
           ? error.message
           : "Der opstod en ukendt fejl.");
@@ -282,8 +190,6 @@ export default function HomeScreen() {
         "Ruten kunne ikke genereres",
         message,
       );
-    } finally {
-      setIsGeneratingRoute(false);
     }
   };
 

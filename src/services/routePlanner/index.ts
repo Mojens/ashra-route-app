@@ -1,17 +1,15 @@
-export { buildCandidateRoutes } from "./buildCandidateRoutes";
-export { chooseBestCandidates } from "./chooseCandidates";
-export { chooseBestDestination } from "./chooseDestination";
-export { planBestRoute } from "./planBestRoute";
-
-export type {
-  PlacesByCategory,
+export {
+  buildCandidateRoutes,
 } from "./buildCandidateRoutes";
+
+export {
+  planBestRoute,
+} from "./planBestRoute";
 
 export type {
   CandidateRoutePlan,
-  PlannedDestination,
+  GeneratedRoutePlan,
+  GenerateRoutePlanOptions,
   PlannedRoute,
   RouteWaypoint,
-  ScoredDestination,
-  TestedRouteCandidate,
 } from "./types";
