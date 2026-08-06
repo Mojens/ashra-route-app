@@ -1,5 +1,5 @@
 import axios, { AxiosError } from "axios";
-
+import { ROUTE_CONFIG } from "../constants";
 import {
   PointOfInterest,
   RouteCategory,
@@ -7,11 +7,8 @@ import {
 } from "../types/route";
 import { calculateDistanceMeters } from "../utils/distance";
 
-const OVERPASS_ENDPOINTS = [
-  "https://overpass-api.de/api/interpreter",
-  "https://overpass.kumi.systems/api/interpreter",
-  "https://overpass.nchc.org.tw/api/interpreter",
-];
+const OVERPASS_ENDPOINTS =
+  ROUTE_CONFIG.overpass.endpoints;
 
 interface OverpassElement {
   id: number;
@@ -79,7 +76,8 @@ async function executeOverpassQuery(
           headers: {
             "Content-Type": "text/plain",
           },
-          timeout: 15000,
+          timeout:
+            ROUTE_CONFIG.overpass.timeoutMs,
         },
       );
 
@@ -126,14 +124,14 @@ export async function findNearbyPlaces(
   const categoryQuery = CATEGORY_QUERIES[category];
 
   const query = `
-    [out:json][timeout:20];
-    (
-      node${categoryQuery}(around:${radiusMeters},${start.latitude},${start.longitude});
-      way${categoryQuery}(around:${radiusMeters},${start.latitude},${start.longitude});
-      relation${categoryQuery}(around:${radiusMeters},${start.latitude},${start.longitude});
-    );
-    out center tags;
-  `;
+  [out:json][timeout:${ROUTE_CONFIG.overpass.queryTimeoutSeconds}];
+  (
+    node${categoryQuery}(around:${radiusMeters},${start.latitude},${start.longitude});
+    way${categoryQuery}(around:${radiusMeters},${start.latitude},${start.longitude});
+    relation${categoryQuery}(around:${radiusMeters},${start.latitude},${start.longitude});
+  );
+  out center tags;
+`;
 
   const data = await executeOverpassQuery(query);
 

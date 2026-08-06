@@ -1,5 +1,6 @@
 import axios from "axios";
 
+import { ROUTE_CONFIG } from "../constants";
 import {
   GeneratedRoute,
   RouteCoordinate,
@@ -20,8 +21,8 @@ interface OpenRouteServiceFeature {
       distance: number;
       duration: number;
     };
-    segments: OpenRouteServiceSegment[];
-    way_points: number[];
+    segments?: OpenRouteServiceSegment[];
+    way_points?: number[];
   };
 }
 
@@ -29,14 +30,22 @@ interface OpenRouteServiceResponse {
   features: OpenRouteServiceFeature[];
 }
 
+const {
+  baseUrl,
+  profile,
+  responseFormat,
+  timeoutMs,
+} = ROUTE_CONFIG.openRouteService;
+
 const API_URL =
-  "https://api.openrouteservice.org/v2/directions/foot-walking/geojson";
+  `${baseUrl}/${profile}/${responseFormat}`;
 
 export async function generateRouteWithWaypoints(
   start: RouteCoordinate,
   waypoints: RouteCoordinate[],
 ): Promise<GeneratedRoute> {
-  const apiKey = process.env.EXPO_PUBLIC_ORS_API_KEY;
+  const apiKey =
+    process.env.EXPO_PUBLIC_ORS_API_KEY;
 
   if (!apiKey) {
     throw new Error(
@@ -66,7 +75,7 @@ export async function generateRouteWithWaypoints(
           Authorization: apiKey,
           "Content-Type": "application/json",
         },
-        timeout: 20000,
+        timeout: timeoutMs,
       },
     );
 
@@ -89,8 +98,8 @@ export async function generateRouteWithWaypoints(
   const segments = createRouteSegments(
     requestedCoordinates,
     routeCoordinates,
-    feature.properties.segments,
-    feature.properties.way_points,
+    feature.properties.segments ?? [],
+    feature.properties.way_points ?? [],
   );
 
   return {
@@ -106,8 +115,8 @@ export async function generateRouteWithWaypoints(
 function createRouteSegments(
   requestedCoordinates: RouteCoordinate[],
   routeCoordinates: RouteCoordinate[],
-  apiSegments: OpenRouteServiceSegment[] = [],
-  wayPointIndexes: number[] = [],
+  apiSegments: OpenRouteServiceSegment[],
+  wayPointIndexes: number[],
 ): RouteSegment[] {
   if (
     apiSegments.length === 0 ||
@@ -117,8 +126,20 @@ function createRouteSegments(
   }
 
   return apiSegments.map((segment, index) => {
-    const startIndex = wayPointIndexes[index];
-    const endIndex = wayPointIndexes[index + 1];
+    const startIndex =
+      wayPointIndexes[index];
+
+    const endIndex =
+      wayPointIndexes[index + 1];
+
+    if (
+      startIndex === undefined ||
+      endIndex === undefined
+    ) {
+      throw new Error(
+        "OpenRouteService returnerede ugyldige waypoint-indekser.",
+      );
+    }
 
     return {
       from: requestedCoordinates[index],
