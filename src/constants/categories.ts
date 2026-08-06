@@ -1,9 +1,9 @@
 import {
   RouteCategory,
-  RouteFilterOption,
+  RouteCategoryOption,
 } from "../types/route";
 
-export const ROUTE_CATEGORIES: RouteFilterOption[] = [
+export const ROUTE_CATEGORIES: RouteCategoryOption[] = [
   {
     id: "park",
     label: "Park",
@@ -22,6 +22,15 @@ export const ROUTE_CATEGORIES: RouteFilterOption[] = [
 ];
 
 export const CATEGORY_LABELS: Record<
+  RouteCategory,
+  string
+> = {
+  park: "Park",
+  beach: "Strand",
+  supermarket: "Supermarked",
+};
+
+export const CATEGORY_FALLBACK_NAMES: Record<
   RouteCategory,
   string
 > = {

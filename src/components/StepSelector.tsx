@@ -1,11 +1,10 @@
 import { Pressable, Text, View } from "react-native";
+import { STEP_OPTIONS } from "../constants";
 
 interface StepSelectorProps {
   selectedSteps: number;
   onSelectSteps: (steps: number) => void;
 }
-
-const STEP_OPTIONS = [5000, 7500, 10000, 15000];
 
 export default function StepSelector({
   selectedSteps,
@@ -33,21 +32,23 @@ export default function StepSelector({
               ].join(" ")}
             >
               <Text
-                className={
+                className={[
+                  "text-sm",
                   isSelected
                     ? "font-bold text-blue-600"
-                    : "font-medium text-slate-700"
-                }
+                    : "font-medium text-slate-700",
+                ].join(" ")}
               >
                 {steps.toLocaleString("da-DK")}
               </Text>
 
               <Text
-                className={
+                className={[
+                  "mt-1 text-xs",
                   isSelected
-                    ? "mt-1 text-xs text-blue-500"
-                    : "mt-1 text-xs text-slate-400"
-                }
+                    ? "text-blue-500"
+                    : "text-slate-400",
+                ].join(" ")}
               >
                 skridt
               </Text>

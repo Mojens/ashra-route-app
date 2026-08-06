@@ -5,15 +5,17 @@ import {
   View,
 } from "react-native";
 
-import { ROUTE_CATEGORIES } from "../constants/categories";
+import { ROUTE_CATEGORIES } from "../constants";
 import { RouteCategory } from "../types/route";
+
+type MoveDirection = "left" | "right";
 
 interface CategorySelectorProps {
   selectedCategories: RouteCategory[];
   onToggleCategory: (category: RouteCategory) => void;
   onMoveCategory: (
     category: RouteCategory,
-    direction: "left" | "right",
+    direction: MoveDirection,
   ) => void;
 }
 
@@ -38,6 +40,10 @@ export default function CategorySelector({
             selectedCategories.indexOf(category.id);
 
           const isSelected = selectedIndex !== -1;
+          const isFirst = selectedIndex === 0;
+          const isLast =
+            selectedIndex ===
+            selectedCategories.length - 1;
 
           return (
             <Pressable
@@ -46,7 +52,7 @@ export default function CategorySelector({
                 onToggleCategory(category.id)
               }
               className={[
-                "min-w-[110px] rounded-2xl border p-3",
+                "min-w-[120px] rounded-2xl border p-3",
                 isSelected
                   ? "border-blue-600 bg-blue-50"
                   : "border-slate-200 bg-white",
@@ -80,66 +86,27 @@ export default function CategorySelector({
               {isSelected &&
                 selectedCategories.length > 1 && (
                   <View className="mt-3 flex-row gap-2">
-                    <Pressable
-                      disabled={selectedIndex === 0}
-                      onPress={(event) => {
-                        event.stopPropagation();
-
+                    <MoveButton
+                      symbol="←"
+                      disabled={isFirst}
+                      onPress={() =>
                         onMoveCategory(
                           category.id,
                           "left",
-                        );
-                      }}
-                      className={[
-                        "flex-1 items-center rounded-lg py-1.5",
-                        selectedIndex === 0
-                          ? "bg-slate-100"
-                          : "bg-white active:bg-slate-100",
-                      ].join(" ")}
-                    >
-                      <Text
-                        className={
-                          selectedIndex === 0
-                            ? "text-slate-300"
-                            : "font-bold text-blue-600"
-                        }
-                      >
-                        ←
-                      </Text>
-                    </Pressable>
-
-                    <Pressable
-                      disabled={
-                        selectedIndex ===
-                        selectedCategories.length - 1
+                        )
                       }
-                      onPress={(event) => {
-                        event.stopPropagation();
+                    />
 
+                    <MoveButton
+                      symbol="→"
+                      disabled={isLast}
+                      onPress={() =>
                         onMoveCategory(
                           category.id,
                           "right",
-                        );
-                      }}
-                      className={[
-                        "flex-1 items-center rounded-lg py-1.5",
-                        selectedIndex ===
-                        selectedCategories.length - 1
-                          ? "bg-slate-100"
-                          : "bg-white active:bg-slate-100",
-                      ].join(" ")}
-                    >
-                      <Text
-                        className={
-                          selectedIndex ===
-                          selectedCategories.length - 1
-                            ? "text-slate-300"
-                            : "font-bold text-blue-600"
-                        }
-                      >
-                        →
-                      </Text>
-                    </Pressable>
+                        )
+                      }
+                    />
                   </View>
                 )}
             </Pressable>
@@ -154,5 +121,43 @@ export default function CategorySelector({
         </Text>
       )}
     </View>
+  );
+}
+
+interface MoveButtonProps {
+  symbol: string;
+  disabled: boolean;
+  onPress: () => void;
+}
+
+function MoveButton({
+  symbol,
+  disabled,
+  onPress,
+}: MoveButtonProps) {
+  return (
+    <Pressable
+      disabled={disabled}
+      onPress={(event) => {
+        event.stopPropagation();
+        onPress();
+      }}
+      className={[
+        "flex-1 items-center rounded-lg py-1.5",
+        disabled
+          ? "bg-slate-100"
+          : "bg-white active:bg-slate-100",
+      ].join(" ")}
+    >
+      <Text
+        className={
+          disabled
+            ? "font-bold text-slate-300"
+            : "font-bold text-blue-600"
+        }
+      >
+        {symbol}
+      </Text>
+    </Pressable>
   );
 }

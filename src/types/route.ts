@@ -3,7 +3,7 @@ export type RouteCategory =
   | "beach"
   | "supermarket";
 
-export interface RouteFilterOption {
+export interface RouteCategoryOption {
   id: RouteCategory;
   label: string;
   icon: string;
