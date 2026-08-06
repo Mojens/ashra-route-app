@@ -1,33 +1,38 @@
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import FilterSelector from "./CategorySelector";
 import StepSelector from "./StepSelector";
 import { RouteCategory } from "../types/route";
 import { stepsToKm, stepsToMinutes } from "../utils/steps";
+import CategorySelector from "./CategorySelector";
 
 interface RoutePanelProps {
   selectedSteps: number;
-  selectedFilters: RouteCategory[];
+  selectedCategories: RouteCategory[];
   isCollapsed: boolean;
   isGeneratingRoute?: boolean;
   routeDistance?: number | null;
   routeDuration?: number | null;
   onSelectSteps: (steps: number) => void;
-  onToggleFilter: (filter: RouteCategory) => void;
+  onToggleCategory: (category: RouteCategory) => void;
+  onMoveCategory: (
+    category: RouteCategory,
+    direction: "left" | "right",
+  ) => void;
   onToggleCollapsed: () => void;
   onGenerateRoute: () => void;
 }
 
 export default function RoutePanel({
   selectedSteps,
-  selectedFilters,
+  selectedCategories,
   isCollapsed,
   isGeneratingRoute = false,
   routeDistance = null,
   routeDuration = null,
   onSelectSteps,
-  onToggleFilter,
+  onToggleCategory,
+  onMoveCategory,
   onToggleCollapsed,
   onGenerateRoute,
 }: RoutePanelProps) {
@@ -64,17 +69,18 @@ export default function RoutePanel({
         {isCollapsed ? (
           <CollapsedSummary
             selectedSteps={selectedSteps}
-            selectedFilters={selectedFilters}
+            selectedCategories={selectedCategories}
           />
         ) : (
           <ExpandedContent
             selectedSteps={selectedSteps}
-            selectedFilters={selectedFilters}
+            selectedCategories={selectedCategories}
             isGeneratingRoute={isGeneratingRoute}
             routeDistance={routeDistance}
             routeDuration={routeDuration}
             onSelectSteps={onSelectSteps}
-            onToggleFilter={onToggleFilter}
+            onToggleCategory={onToggleCategory}
+            onMoveCategory={onMoveCategory}
             onGenerateRoute={onGenerateRoute}
           />
         )}
@@ -85,12 +91,12 @@ export default function RoutePanel({
 
 interface CollapsedSummaryProps {
   selectedSteps: number;
-  selectedFilters: RouteCategory[];
+  selectedCategories: RouteCategory[];
 }
 
 function CollapsedSummary({
   selectedSteps,
-  selectedFilters,
+  selectedCategories,
 }: CollapsedSummaryProps) {
   return (
     <View className="mt-3 flex-row items-center justify-between">
@@ -104,8 +110,7 @@ function CollapsedSummary({
 
       <View className="items-end">
         <Text className="text-sm text-slate-500">
-          {selectedFilters.length}{" "}
-          {selectedFilters.length === 1 ? "filter" : "filtre"}
+          {selectedCategories.length} stop
         </Text>
 
         <Text className="text-sm font-medium text-blue-600">
@@ -118,23 +123,28 @@ function CollapsedSummary({
 
 interface ExpandedContentProps {
   selectedSteps: number;
-  selectedFilters: RouteCategory[];
+  selectedCategories: RouteCategory[];
   isGeneratingRoute: boolean;
   routeDistance: number | null;
   routeDuration: number | null;
   onSelectSteps: (steps: number) => void;
-  onToggleFilter: (filter: RouteCategory) => void;
+  onToggleCategory: (category: RouteCategory) => void;
+  onMoveCategory: (
+    category: RouteCategory,
+    direction: "left" | "right",
+  ) => void;
   onGenerateRoute: () => void;
 }
 
 function ExpandedContent({
   selectedSteps,
-  selectedFilters,
+  selectedCategories,
   isGeneratingRoute,
   routeDistance,
   routeDuration,
   onSelectSteps,
-  onToggleFilter,
+  onToggleCategory,
+  onMoveCategory,
   onGenerateRoute,
 }: ExpandedContentProps) {
   return (
@@ -150,9 +160,10 @@ function ExpandedContent({
 
       <View className="my-5 h-px bg-slate-200" />
 
-      <FilterSelector
-        selectedFilters={selectedFilters}
-        onToggleFilter={onToggleFilter}
+      <CategorySelector
+        selectedCategories={selectedCategories}
+        onToggleCategory={onToggleCategory}
+        onMoveCategory={onMoveCategory}
       />
 
       {routeDistance !== null && routeDuration !== null && (

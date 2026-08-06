@@ -111,6 +111,45 @@ export default function HomeScreen() {
     );
   };
 
+  const moveCategory = (
+    category: RouteCategory,
+    direction: "left" | "right",
+  ) => {
+    setSelectedCategories((currentCategories) => {
+      const currentIndex =
+        currentCategories.indexOf(category);
+
+      if (currentIndex === -1) {
+        return currentCategories;
+      }
+
+      const newIndex =
+        direction === "left"
+          ? currentIndex - 1
+          : currentIndex + 1;
+
+      if (
+        newIndex < 0 ||
+        newIndex >= currentCategories.length
+      ) {
+        return currentCategories;
+      }
+
+      const reorderedCategories = [
+        ...currentCategories,
+      ];
+
+      [
+        reorderedCategories[currentIndex],
+        reorderedCategories[newIndex],
+      ] = [
+          reorderedCategories[newIndex],
+          reorderedCategories[currentIndex],
+        ];
+
+      return reorderedCategories;
+    });
+  };
   const handleGenerateRoute = async () => {
     if (!region || isBusy) {
       return;
@@ -253,17 +292,16 @@ export default function HomeScreen() {
 
       <RoutePanel
         selectedSteps={selectedSteps}
-        selectedFilters={selectedCategories}
+        selectedCategories={selectedCategories}
         isCollapsed={isPanelCollapsed}
         isGeneratingRoute={isBusy}
         routeDistance={routeDistance}
         routeDuration={routeDuration}
         onSelectSteps={setSelectedSteps}
-        onToggleFilter={toggleCategory}
+        onToggleCategory={toggleCategory}
+        onMoveCategory={moveCategory}
         onToggleCollapsed={() =>
-          setIsPanelCollapsed(
-            (current) => !current,
-          )
+          setIsPanelCollapsed((current) => !current)
         }
         onGenerateRoute={handleGenerateRoute}
       />
