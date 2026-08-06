@@ -78,7 +78,7 @@ export default function RouteOverviewCard({
             {onShowOtherRoutes && (
               <Pressable
                 onPress={onShowOtherRoutes}
-                className="mt-3 items-center rounded-2xl bg-slate-100 py-3 active:bg-slate-200"
+                className="mt-3 items-center rounded-2xl bg-slate-100 py-3 px-3 active:bg-slate-200"
               >
                 <Text className="font-semibold text-slate-700">
                   Se andre ruter
