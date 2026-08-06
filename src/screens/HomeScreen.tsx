@@ -8,10 +8,10 @@ import {
   View,
 } from "react-native";
 import MapView, {
-  Marker,
   Polyline,
   Region,
 } from "react-native-maps";
+import WaypointMarker from "../components/WaypointMarker";
 import * as Location from "expo-location";
 
 import RoutePanel from "../components/RoutePanel";
@@ -276,15 +276,11 @@ export default function HomeScreen() {
         showsMyLocationButton
       >
         {selectedWaypoints.map((place, index) => (
-          <Marker
+          <WaypointMarker
             key={`${place.category}-${place.id}-${index}`}
-            coordinate={place.coordinate}
-            title={place.name}
-            description={getWaypointDescription(
-              place.category,
-              index,
-            )}
-            pinColor={getSegmentColor(index)}
+            place={place}
+            stopNumber={index + 1}
+            color={getSegmentColor(index)}
           />
         ))}
 
@@ -338,24 +334,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
 });
-
-function getWaypointDescription(
-  category: RouteCategory,
-  index: number,
-): string {
-  const stopNumber = index + 1;
-
-  switch (category) {
-    case "park":
-      return `Stop ${stopNumber}: Park`;
-
-    case "beach":
-      return `Stop ${stopNumber}: Strand`;
-
-    case "supermarket":
-      return `Stop ${stopNumber}: Supermarked`;
-  }
-}
 
 function getMarkerColor(
   category: RouteCategory,
