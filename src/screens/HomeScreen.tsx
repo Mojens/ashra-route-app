@@ -48,8 +48,9 @@ export default function HomeScreen() {
     null,
   );
 
-  const [selectedPlace, setSelectedPlace] =
-    useState<PointOfInterest | null>(null);
+  const [selectedWaypoints, setSelectedWaypoints] = useState<
+    PointOfInterest[]
+  >([]);
 
   const {
     generateRoutePlan,
@@ -127,19 +128,14 @@ export default function HomeScreen() {
         selectedSteps,
       });
 
-      const firstWaypoint =
-        result.waypoints[0]?.place ?? null;
+      const waypointPlaces = result.waypoints.map(
+        ({ place }) => place,
+      );
 
-      setSelectedPlace(firstWaypoint);
-      setRouteCoordinates(
-        result.route.coordinates,
-      );
-      setRouteDistance(
-        result.route.distanceMeters,
-      );
-      setRouteDuration(
-        result.route.durationSeconds,
-      );
+      setSelectedWaypoints(waypointPlaces);
+      setRouteCoordinates(result.route.coordinates);
+      setRouteDistance(result.route.distanceMeters);
+      setRouteDuration(result.route.durationSeconds);
       setIsPanelCollapsed(true);
 
       console.log("Valgt rute:", {
@@ -233,14 +229,18 @@ export default function HomeScreen() {
         showsUserLocation
         showsMyLocationButton
       >
-        {selectedPlace && (
+        {selectedWaypoints.map((place, index) => (
           <Marker
-            coordinate={selectedPlace.coordinate}
-            title={selectedPlace.name}
-            description="Park på din rute"
-            pinColor="green"
+            key={`${place.category}-${place.id}-${index}`}
+            coordinate={place.coordinate}
+            title={place.name}
+            description={getWaypointDescription(
+              place.category,
+              index,
+            )}
+            pinColor={getMarkerColor(place.category)}
           />
-        )}
+        ))}
 
         {routeCoordinates.length > 0 && (
           <Polyline
@@ -280,3 +280,36 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
 });
+
+function getWaypointDescription(
+  category: RouteCategory,
+  index: number,
+): string {
+  const stopNumber = index + 1;
+
+  switch (category) {
+    case "park":
+      return `Stop ${stopNumber}: Park`;
+
+    case "beach":
+      return `Stop ${stopNumber}: Strand`;
+
+    case "supermarket":
+      return `Stop ${stopNumber}: Supermarked`;
+  }
+}
+
+function getMarkerColor(
+  category: RouteCategory,
+): string {
+  switch (category) {
+    case "park":
+      return "green";
+
+    case "beach":
+      return "blue";
+
+    case "supermarket":
+      return "orange";
+  }
+}
