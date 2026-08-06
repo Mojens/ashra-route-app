@@ -35,4 +35,13 @@ export interface GeneratedRoute {
   coordinates: RouteCoordinate[];
   distanceMeters: number;
   durationSeconds: number;
+  segments: RouteSegment[];
+}
+
+export interface RouteSegment {
+  from: RouteCoordinate;
+  to: RouteCoordinate;
+  coordinates: RouteCoordinate[];
+  distanceMeters: number;
+  durationSeconds: number;
 }

@@ -19,10 +19,16 @@ import {
   PointOfInterest,
   RouteCategory,
   RouteCoordinate,
+  RouteSegment,
 } from "../types/route";
 import { useRoutePlanner } from "../hooks/useRoutePlanner";
 
+
 export default function HomeScreen() {
+  // Route segmenter til forskellige dele af ruten, som kan bruges til at vise detaljer om hvert segment
+  const [routeSegments, setRouteSegments] =
+    useState<RouteSegment[]>([]);
+
   const mapRef = useRef<MapView>(null);
 
   const [region, setRegion] = useState<Region | null>(null);
@@ -173,6 +179,7 @@ export default function HomeScreen() {
 
       setSelectedWaypoints(waypointPlaces);
       setRouteCoordinates(result.route.coordinates);
+      setRouteSegments(result.route.segments);
       setRouteDistance(result.route.distanceMeters);
       setRouteDuration(result.route.durationSeconds);
       setIsPanelCollapsed(true);
@@ -277,17 +284,30 @@ export default function HomeScreen() {
               place.category,
               index,
             )}
-            pinColor={getMarkerColor(place.category)}
+            pinColor={getSegmentColor(index)}
           />
         ))}
 
-        {routeCoordinates.length > 0 && (
-          <Polyline
-            coordinates={routeCoordinates}
-            strokeWidth={5}
-            strokeColor="#2563EB"
-          />
-        )}
+        {routeSegments.length > 0
+          ? routeSegments.map((segment, index) => (
+            <Polyline
+              key={`route-segment-${index}`}
+              coordinates={segment.coordinates}
+              strokeWidth={6}
+              strokeColor={getSegmentColor(index)}
+              lineCap="round"
+              lineJoin="round"
+            />
+          ))
+          : routeCoordinates.length > 0 && (
+            <Polyline
+              coordinates={routeCoordinates}
+              strokeWidth={6}
+              strokeColor="#2563EB"
+              lineCap="round"
+              lineJoin="round"
+            />
+          )}
       </MapView>
 
       <RoutePanel
@@ -350,4 +370,21 @@ function getMarkerColor(
     case "supermarket":
       return "orange";
   }
+}
+
+const SEGMENT_COLORS = [
+  "#F97316", // orange
+  "#16A34A", // grøn
+  "#2563EB", // blå
+  "#9333EA", // lilla
+  "#DC2626", // rød
+  "#0891B2", // cyan
+];
+
+function getSegmentColor(
+  index: number,
+): string {
+  return SEGMENT_COLORS[
+    index % SEGMENT_COLORS.length
+  ];
 }

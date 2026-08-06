@@ -3,20 +3,30 @@ import axios from "axios";
 import {
   GeneratedRoute,
   RouteCoordinate,
+  RouteSegment,
 } from "../types/route";
 
+interface OpenRouteServiceSegment {
+  distance: number;
+  duration: number;
+}
+
+interface OpenRouteServiceFeature {
+  geometry: {
+    coordinates: [number, number][];
+  };
+  properties: {
+    summary: {
+      distance: number;
+      duration: number;
+    };
+    segments: OpenRouteServiceSegment[];
+    way_points: number[];
+  };
+}
+
 interface OpenRouteServiceResponse {
-  features: Array<{
-    geometry: {
-      coordinates: [number, number][];
-    };
-    properties: {
-      summary: {
-        distance: number;
-        duration: number;
-      };
-    };
-  }>;
+  features: OpenRouteServiceFeature[];
 }
 
 const API_URL =
@@ -29,31 +39,36 @@ export async function generateRouteWithWaypoints(
   const apiKey = process.env.EXPO_PUBLIC_ORS_API_KEY;
 
   if (!apiKey) {
-    throw new Error("OpenRouteService API-nøglen mangler.");
+    throw new Error(
+      "OpenRouteService API-nøglen mangler.",
+    );
   }
 
-  const coordinates = [
+  const requestedCoordinates = [
     start,
     ...waypoints,
     start,
-  ].map((coordinate) => [
-    coordinate.longitude,
-    coordinate.latitude,
-  ]);
+  ];
 
-  const response = await axios.post<OpenRouteServiceResponse>(
-    API_URL,
-    {
-      coordinates,
-    },
-    {
-      headers: {
-        Authorization: apiKey,
-        "Content-Type": "application/json",
+  const response =
+    await axios.post<OpenRouteServiceResponse>(
+      API_URL,
+      {
+        coordinates: requestedCoordinates.map(
+          ({ longitude, latitude }) => [
+            longitude,
+            latitude,
+          ],
+        ),
       },
-      timeout: 20000,
-    },
-  );
+      {
+        headers: {
+          Authorization: apiKey,
+          "Content-Type": "application/json",
+        },
+        timeout: 20000,
+      },
+    );
 
   const feature = response.data.features[0];
 
@@ -63,23 +78,70 @@ export async function generateRouteWithWaypoints(
     );
   }
 
-  return {
-    coordinates: feature.geometry.coordinates.map(
+  const routeCoordinates =
+    feature.geometry.coordinates.map(
       ([longitude, latitude]) => ({
         latitude,
         longitude,
       }),
-    ),
+    );
+
+  const segments = createRouteSegments(
+    requestedCoordinates,
+    routeCoordinates,
+    feature.properties.segments,
+    feature.properties.way_points,
+  );
+
+  return {
+    coordinates: routeCoordinates,
     distanceMeters:
       feature.properties.summary.distance,
     durationSeconds:
       feature.properties.summary.duration,
+    segments,
   };
+}
+
+function createRouteSegments(
+  requestedCoordinates: RouteCoordinate[],
+  routeCoordinates: RouteCoordinate[],
+  apiSegments: OpenRouteServiceSegment[],
+  wayPointIndexes: number[],
+): RouteSegment[] {
+  if (
+    apiSegments.length === 0 ||
+    wayPointIndexes.length < 2
+  ) {
+    return [];
+  }
+
+  return apiSegments.map((segment, index) => {
+    const startIndex =
+      wayPointIndexes[index];
+
+    const endIndex =
+      wayPointIndexes[index + 1];
+
+    return {
+      from: requestedCoordinates[index],
+      to: requestedCoordinates[index + 1],
+      coordinates: routeCoordinates.slice(
+        startIndex,
+        endIndex + 1,
+      ),
+      distanceMeters: segment.distance,
+      durationSeconds: segment.duration,
+    };
+  });
 }
 
 export async function generateRoundTripRoute(
   start: RouteCoordinate,
   waypoint: RouteCoordinate,
 ): Promise<GeneratedRoute> {
-  return generateRouteWithWaypoints(start, [waypoint]);
+  return generateRouteWithWaypoints(
+    start,
+    [waypoint],
+  );
 }
