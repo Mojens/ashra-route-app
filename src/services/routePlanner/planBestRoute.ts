@@ -17,7 +17,7 @@ export async function planBestRoute({
   origin,
   places,
   targetDistanceMeters,
-  candidateLimit = 5,
+  candidateLimit = 3,
 }: PlanBestRouteOptions): Promise<TestedRouteCandidate | null> {
   const candidates = chooseBestCandidates(
     origin,
@@ -30,29 +30,37 @@ export async function planBestRoute({
     return null;
   }
 
-  const testedCandidates: TestedRouteCandidate[] = [];
-
-  for (const candidate of candidates) {
-    try {
+  const results = await Promise.allSettled(
+    candidates.map(async (candidate) => {
       const route = await generateRoundTripRoute(
         origin,
         candidate.place.coordinate,
       );
 
-      testedCandidates.push({
+      const testedCandidate: TestedRouteCandidate = {
         place: candidate.place,
         route,
         differenceMeters: Math.abs(
           targetDistanceMeters - route.distanceMeters,
         ),
-      });
-    } catch (error) {
-      console.warn(
-        `Kunne ikke teste ruten til ${candidate.place.name}`,
-        error,
-      );
+      };
+
+      return testedCandidate;
+    }),
+  );
+
+  const testedCandidates = results.flatMap((result, index) => {
+    if (result.status === "fulfilled") {
+      return [result.value];
     }
-  }
+
+    console.warn(
+      `Kunne ikke teste ruten til ${candidates[index].place.name}`,
+      result.reason,
+    );
+
+    return [];
+  });
 
   if (testedCandidates.length === 0) {
     return null;
