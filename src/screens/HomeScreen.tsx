@@ -27,8 +27,13 @@ import {
   RouteSegment,
 } from "../types/route";
 import { getSegmentColor } from "../utils/routeColors";
+import RouteOverviewCard from "../components/RouteOverviewCard";
 
 export default function HomeScreen() {
+  // RouteOverviewCard state
+  const [isRouteOverviewExpanded, setIsRouteOverviewExpanded] =
+    useState(false);
+
   const mapRef = useRef<MapView>(null);
 
   const [region, setRegion] = useState<Region | null>(null);
@@ -199,6 +204,7 @@ export default function HomeScreen() {
       setRouteDistance(result.route.distanceMeters);
       setRouteDuration(result.route.durationSeconds);
       setIsPanelCollapsed(true);
+      setIsRouteOverviewExpanded(false);
 
       console.log("Valgt rute:", {
         targetKm: result.targetDistanceMeters / 1000,
@@ -302,9 +308,7 @@ export default function HomeScreen() {
             <Polyline
               key={`route-segment-${index}`}
               coordinates={segment.coordinates}
-              strokeWidth={
-                MAP_CONFIG.routeStrokeWidth
-              }
+              strokeWidth={MAP_CONFIG.routeStrokeWidth}
               strokeColor={getSegmentColor(index)}
               lineCap="round"
               lineJoin="round"
@@ -313,15 +317,26 @@ export default function HomeScreen() {
           : routeCoordinates.length > 0 && (
             <Polyline
               coordinates={routeCoordinates}
-              strokeWidth={
-                MAP_CONFIG.routeStrokeWidth
-              }
+              strokeWidth={MAP_CONFIG.routeStrokeWidth}
               strokeColor={COLORS.primary}
               lineCap="round"
               lineJoin="round"
             />
           )}
       </MapView>
+
+      <RouteOverviewCard
+        waypoints={selectedWaypoints}
+        segments={routeSegments}
+        isVisible={
+          isPanelCollapsed &&
+          routeSegments.length > 0
+        }
+        isExpanded={isRouteOverviewExpanded}
+        onToggleExpanded={() =>
+          setIsRouteOverviewExpanded((current) => !current)
+        }
+      />
 
       <RoutePanel
         selectedSteps={selectedSteps}
@@ -334,9 +349,7 @@ export default function HomeScreen() {
         onToggleCategory={toggleCategory}
         onMoveCategory={moveCategory}
         onToggleCollapsed={() =>
-          setIsPanelCollapsed(
-            (current) => !current,
-          )
+          setIsPanelCollapsed((current) => !current)
         }
         onGenerateRoute={handleGenerateRoute}
       />

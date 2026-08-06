@@ -1,9 +1,10 @@
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import CategorySelector from "./CategorySelector";
 import StepSelector from "./StepSelector";
 import { RouteCategory } from "../types/route";
 import { stepsToKm, stepsToMinutes } from "../utils/steps";
-import CategorySelector from "./CategorySelector";
 import {
   formatDistanceKm,
   formatDurationMinutes,
@@ -105,7 +106,9 @@ function CollapsedSummary({
   return (
     <View className="mt-3 flex-row items-center justify-between">
       <View>
-        <Text className="text-sm text-slate-500">Valgt rute</Text>
+        <Text className="text-sm text-slate-500">
+          Valgt rute
+        </Text>
 
         <Text className="font-semibold text-slate-900">
           {formatSteps(selectedSteps)} skridt
@@ -170,12 +173,13 @@ function ExpandedContent({
         onMoveCategory={onMoveCategory}
       />
 
-      {routeDistance !== null && routeDuration !== null && (
-        <GeneratedRouteSummary
-          distanceMeters={routeDistance}
-          durationSeconds={routeDuration}
-        />
-      )}
+      {routeDistance !== null &&
+        routeDuration !== null && (
+          <GeneratedRouteSummary
+            distanceMeters={routeDistance}
+            durationSeconds={routeDuration}
+          />
+        )}
 
       <Pressable
         className={[
