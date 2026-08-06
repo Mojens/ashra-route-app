@@ -1,15 +1,10 @@
-export {
-  buildCandidateRoutes,
-} from "./buildCandidateRoutes";
-
-export {
-  planBestRoute,
-} from "./planBestRoute";
+export { buildCandidateRoutes } from "./buildCandidateRoutes";
+export { planBestRoute } from "./planBestRoute";
+export { planRouteSuggestions } from "./planRouteSuggestions";
 
 export type {
   CandidateRoutePlan,
   GeneratedRoutePlan,
-  GenerateRoutePlanOptions,
   PlannedRoute,
   RouteWaypoint,
 } from "./types";

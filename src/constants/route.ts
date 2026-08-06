@@ -5,6 +5,7 @@ export const ROUTE_CONFIG = {
   placesPerCategory: 4,
   maximumCandidateRoutes: 20,
   routesToTest: 4,
+  routeSuggestionsToShow: 3,
 
   nearbyPlacesCacheDurationMs: 10 * 60 * 1000,
   nearbyPlacesCacheMaximumMovementMeters: 500,

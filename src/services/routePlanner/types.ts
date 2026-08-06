@@ -16,6 +16,7 @@ export interface CandidateRoutePlan {
 }
 
 export interface PlannedRoute {
+  id: string;
   route: GeneratedRoute;
   waypoints: RouteWaypoint[];
   differenceMeters: number;
@@ -28,6 +29,7 @@ export interface GenerateRoutePlanOptions {
 }
 
 export interface GeneratedRoutePlan {
+  id: string;
   route: GeneratedRoute;
   waypoints: RouteWaypoint[];
   targetDistanceMeters: number;

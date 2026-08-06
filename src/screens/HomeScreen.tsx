@@ -29,6 +29,8 @@ import {
 import { getSegmentColor } from "../utils/routeColors";
 import RouteOverviewCard from "../components/RouteOverviewCard";
 import ActiveRouteCard from "../components/ActiveRouteCard";
+import RouteSuggestionsModal from "../components/RouteSuggestionsModal";
+import { GeneratedRoutePlan } from "../services/routePlanner";
 
 export default function HomeScreen() {
   // RouteOverviewCard state
@@ -77,6 +79,51 @@ export default function HomeScreen() {
     PointOfInterest[]
   >([]);
 
+  const [routeSuggestions, setRouteSuggestions] =
+    useState<GeneratedRoutePlan[]>([]);
+
+  const [
+    isRouteSuggestionsVisible,
+    setIsRouteSuggestionsVisible,
+  ] = useState(false);
+
+  const applyRoutePlan = (
+    result: GeneratedRoutePlan,
+  ): void => {
+    const waypointPlaces = result.waypoints.map(
+      ({ place }) => place,
+    );
+
+    setSelectedWaypoints(waypointPlaces);
+    setRouteCoordinates(result.route.coordinates);
+    setRouteSegments(result.route.segments ?? []);
+    setRouteDistance(result.route.distanceMeters);
+    setRouteDuration(result.route.durationSeconds);
+
+    setIsPanelCollapsed(true);
+    setIsRouteOverviewExpanded(false);
+    setIsRouteActive(false);
+    setCurrentStopIndex(0);
+
+    const coordinatesToFit: RouteCoordinate[] = [
+      ...result.route.coordinates,
+      ...result.waypoints.map(
+        ({ place }) => place.coordinate,
+      ),
+    ];
+
+    if (coordinatesToFit.length > 0) {
+      mapRef.current?.fitToCoordinates(
+        coordinatesToFit,
+        {
+          edgePadding:
+            MAP_CONFIG.routeEdgePadding,
+          animated: true,
+        },
+      );
+    }
+  };
+
   const handleStartRoute = (): void => {
     if (routeSegments.length === 0) {
       Alert.alert(
@@ -119,7 +166,7 @@ export default function HomeScreen() {
   };
 
   const {
-    generateRoutePlan,
+    generateRoutePlans,
     isBusy,
     errorMessage: routePlannerError,
   } = useRoutePlanner();
@@ -180,6 +227,18 @@ export default function HomeScreen() {
     );
   };
 
+  const handleShowRouteSuggestions = (): void => {
+    if (routeSuggestions.length === 0) {
+      Alert.alert(
+        "Ingen ruteforslag",
+        "Generér først nogle ruteforslag.",
+      );
+      return;
+    }
+
+    setIsRouteSuggestionsVisible(true);
+  };
+
   const moveCategory = (
     category: RouteCategory,
     direction: "left" | "right",
@@ -231,62 +290,37 @@ export default function HomeScreen() {
     };
 
     try {
-      const result = await generateRoutePlan({
-        origin,
-        selectedCategories,
-        selectedSteps,
-      });
+      const suggestions =
+        await generateRoutePlans({
+          origin,
+          selectedCategories,
+          selectedSteps,
+        });
 
-      const waypoints = result.waypoints ?? [];
-      const coordinates = result.route.coordinates ?? [];
-      const segments = result.route.segments ?? [];
-
-      const waypointPlaces = waypoints.map(
-        ({ place }) => place,
-      );
-
-      setSelectedWaypoints(waypointPlaces);
-      setRouteCoordinates(coordinates);
-      setRouteSegments(segments);
-      setRouteDistance(result.route.distanceMeters);
-      setRouteDuration(result.route.durationSeconds);
-      setIsPanelCollapsed(true);
-      setIsRouteOverviewExpanded(false);
-      setIsRouteActive(false);
-      setCurrentStopIndex(0);
-
-      console.log("Valgt rute:", {
-        targetKm: result.targetDistanceMeters / 1000,
-        actualKm: result.route.distanceMeters / 1000,
-        differenceKm: result.differenceMeters / 1000,
-        waypoints: waypoints.map(
-          ({ category, place }) => ({
-            category,
-            name: place.name,
-          }),
-        ),
-      });
-
-      const coordinatesToFit: RouteCoordinate[] = [
-        ...coordinates,
-        ...waypoints.map(
-          ({ place }) => place.coordinate,
-        ),
-      ];
-
-      if (coordinatesToFit.length > 0) {
-        mapRef.current?.fitToCoordinates(
-          coordinatesToFit,
-          {
-            edgePadding:
-              MAP_CONFIG.routeEdgePadding,
-            animated: true,
-          },
+      if (suggestions.length === 0) {
+        throw new Error(
+          "Der blev ikke fundet nogen ruter.",
         );
       }
+
+      /*
+       * Ingen kategorier:
+       * Vis den ene frie rundtur direkte.
+       */
+      if (selectedCategories.length === 0) {
+        applyRoutePlan(suggestions[0]);
+        return;
+      }
+
+      /*
+       * Kategorier valgt:
+       * Lad brugeren vælge mellem forslagene.
+       */
+      setRouteSuggestions(suggestions);
+      setIsRouteSuggestionsVisible(true);
     } catch (error) {
       console.error(
-        "Kunne ikke generere ruten:",
+        "Kunne ikke generere ruter:",
         error,
       );
 
@@ -297,7 +331,7 @@ export default function HomeScreen() {
           : "Der opstod en ukendt fejl.");
 
       Alert.alert(
-        "Ruten kunne ikke genereres",
+        "Ruterne kunne ikke genereres",
         message,
       );
     }
@@ -379,7 +413,7 @@ export default function HomeScreen() {
         segments={routeSegments}
         isVisible={
           isPanelCollapsed &&
-          !isRouteActive
+          routeCoordinates.length > 0
         }
         isExpanded={isRouteOverviewExpanded}
         onToggleExpanded={() =>
@@ -388,6 +422,11 @@ export default function HomeScreen() {
           )
         }
         onStartRoute={handleStartRoute}
+        onShowOtherRoutes={
+          routeSuggestions.length > 1
+            ? handleShowRouteSuggestions
+            : undefined
+        }
       />
 
       <ActiveRouteCard
@@ -398,7 +437,17 @@ export default function HomeScreen() {
         onNextStop={handleNextStop}
         onStopRoute={handleStopRoute}
       />
-
+      <RouteSuggestionsModal
+        visible={isRouteSuggestionsVisible}
+        suggestions={routeSuggestions}
+        onClose={() =>
+          setIsRouteSuggestionsVisible(false)
+        }
+        onSelectRoute={(suggestion) => {
+          setIsRouteSuggestionsVisible(false);
+          applyRoutePlan(suggestion);
+        }}
+      />
       {!isRouteActive && (
         <RoutePanel
           selectedSteps={selectedSteps}

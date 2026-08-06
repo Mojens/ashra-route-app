@@ -11,6 +11,7 @@ interface RouteOverviewCardProps {
   isExpanded: boolean;
   onToggleExpanded: () => void;
   onStartRoute: () => void;
+  onShowOtherRoutes?: () => void;
 }
 
 export default function RouteOverviewCard({
@@ -20,6 +21,7 @@ export default function RouteOverviewCard({
   isExpanded,
   onToggleExpanded,
   onStartRoute,
+  onShowOtherRoutes,
 }: RouteOverviewCardProps) {
   if (!isVisible) {
     return null;
@@ -73,7 +75,16 @@ export default function RouteOverviewCard({
                 {waypoints.length === 1 ? "stop" : "stop"}
               </Text>
             </View>
-
+            {onShowOtherRoutes && (
+              <Pressable
+                onPress={onShowOtherRoutes}
+                className="mt-3 items-center rounded-2xl bg-slate-100 py-3 active:bg-slate-200"
+              >
+                <Text className="font-semibold text-slate-700">
+                  Se andre ruter
+                </Text>
+              </Pressable>
+            )}
             <Pressable
               onPress={onToggleExpanded}
               accessibilityRole="button"

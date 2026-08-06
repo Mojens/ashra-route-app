@@ -4,11 +4,12 @@ import { getLocationDescription } from "../services/geocodingService";
 import {
   buildCandidateRoutes,
   GeneratedRoutePlan,
-  planBestRoute,
+  planRouteSuggestions,
 } from "../services/routePlanner";
 import {
   PointOfInterest,
   RouteCategory,
+  RouteCoordinate,
 } from "../types/route";
 import { stepsToKm } from "../utils/steps";
 import { generateFreeRoundTripRoute } from "../services/routeService";
@@ -30,26 +31,26 @@ export function useRoutePlanner() {
   const isBusy =
     isPlanningRoute || isLoadingPlaces;
 
-  const generateRoutePlan = useCallback(
+  const generateRoutePlans = useCallback(
     async ({
       origin,
       selectedCategories,
       selectedSteps,
     }: {
-      origin: {
-        latitude: number;
-        longitude: number;
-      };
+      origin: RouteCoordinate;
       selectedCategories: RouteCategory[];
       selectedSteps: number;
-    }): Promise<GeneratedRoutePlan> => {
-
+    }): Promise<GeneratedRoutePlan[]> => {
       setIsPlanningRoute(true);
 
       try {
         const targetDistanceMeters =
           stepsToKm(selectedSteps) * 1000;
 
+        /*
+         * Ingen kategorier:
+         * Returnér én almindelig rundtur.
+         */
         if (selectedCategories.length === 0) {
           const route =
             await generateFreeRoundTripRoute(
@@ -57,17 +58,24 @@ export function useRoutePlanner() {
               targetDistanceMeters,
             );
 
-          return {
-            route,
-            waypoints: [],
-            targetDistanceMeters,
-            differenceMeters: Math.abs(
-              targetDistanceMeters -
-              route.distanceMeters,
-            ),
-          };
+          return [
+            {
+              id: "free-round-trip",
+              route,
+              waypoints: [],
+              targetDistanceMeters,
+              differenceMeters: Math.abs(
+                targetDistanceMeters -
+                route.distanceMeters,
+              ),
+            },
+          ];
         }
 
+        /*
+         * Kategorier valgt:
+         * Hent POI'er og lav flere ruteforslag.
+         */
         const searchRadiusMeters =
           calculateSearchRadius(
             targetDistanceMeters,
@@ -120,33 +128,40 @@ export function useRoutePlanner() {
           );
         }
 
-        const plannedRoute =
-          await planBestRoute({
+        const suggestions =
+          await planRouteSuggestions({
             origin,
             candidates: candidateRoutes,
             targetDistanceMeters,
             candidateLimit:
               ROUTE_CONFIG.routesToTest,
+            suggestionLimit:
+              ROUTE_CONFIG.routeSuggestionsToShow,
           });
 
-        if (!plannedRoute) {
+        if (suggestions.length === 0) {
           throw new Error(
-            "Der kunne ikke genereres en passende rute.",
+            "Der kunne ikke genereres nogen passende ruter.",
           );
         }
 
-        const namedWaypoints =
-          await addWaypointFallbackNames(
-            plannedRoute.waypoints,
-          );
+        return Promise.all(
+          suggestions.map(async (suggestion) => {
+            const namedWaypoints =
+              await addWaypointFallbackNames(
+                suggestion.waypoints,
+              );
 
-        return {
-          route: plannedRoute.route,
-          waypoints: namedWaypoints,
-          targetDistanceMeters,
-          differenceMeters:
-            plannedRoute.differenceMeters,
-        };
+            return {
+              id: suggestion.id,
+              route: suggestion.route,
+              waypoints: namedWaypoints,
+              targetDistanceMeters,
+              differenceMeters:
+                suggestion.differenceMeters,
+            };
+          }),
+        );
       } finally {
         setIsPlanningRoute(false);
       }
@@ -159,8 +174,9 @@ export function useRoutePlanner() {
     [nearbyPlacesError],
   );
 
+
   return {
-    generateRoutePlan,
+    generateRoutePlans,
     isBusy,
     errorMessage,
   };
