@@ -1,74 +1,83 @@
+import { RouteCoordinate } from "../../types/route";
+import { generateRouteWithWaypoints } from "../routeService";
+
 import {
-  PointOfInterest,
-  RouteCoordinate,
-} from "../../types/route";
-import { generateRoundTripRoute } from "../routeService";
-import { chooseBestCandidates } from "./chooseCandidates";
-import { TestedRouteCandidate } from "./types";
+  CandidateRoutePlan,
+  PlannedRoute,
+} from "./types";
 
 interface PlanBestRouteOptions {
   origin: RouteCoordinate;
-  places: PointOfInterest[];
+  candidates: CandidateRoutePlan[];
   targetDistanceMeters: number;
   candidateLimit?: number;
 }
 
 export async function planBestRoute({
   origin,
-  places,
+  candidates,
   targetDistanceMeters,
-  candidateLimit = 3,
-}: PlanBestRouteOptions): Promise<TestedRouteCandidate | null> {
-  const candidates = chooseBestCandidates(
-    origin,
-    places,
-    targetDistanceMeters,
+  candidateLimit = 6,
+}: PlanBestRouteOptions): Promise<PlannedRoute | null> {
+  const candidatesToTest = candidates.slice(
+    0,
     candidateLimit,
   );
 
-  if (candidates.length === 0) {
+  if (candidatesToTest.length === 0) {
     return null;
   }
 
   const results = await Promise.allSettled(
-    candidates.map(async (candidate) => {
-      const route = await generateRoundTripRoute(
-        origin,
-        candidate.place.coordinate,
-      );
+    candidatesToTest.map(async (candidate) => {
+      const waypointCoordinates =
+        candidate.waypoints.map(
+          (waypoint) => waypoint.place.coordinate,
+        );
 
-      const testedCandidate: TestedRouteCandidate = {
-        place: candidate.place,
+      const route =
+        await generateRouteWithWaypoints(
+          origin,
+          waypointCoordinates,
+        );
+
+      const plannedRoute: PlannedRoute = {
         route,
+        waypoints: candidate.waypoints,
         differenceMeters: Math.abs(
-          targetDistanceMeters - route.distanceMeters,
+          targetDistanceMeters -
+            route.distanceMeters,
         ),
       };
 
-      return testedCandidate;
+      return plannedRoute;
     }),
   );
 
-  const testedCandidates = results.flatMap((result, index) => {
-    if (result.status === "fulfilled") {
-      return [result.value];
-    }
+  const successfulRoutes = results.flatMap(
+    (result, index) => {
+      if (result.status === "fulfilled") {
+        return [result.value];
+      }
 
-    console.warn(
-      `Kunne ikke teste ruten til ${candidates[index].place.name}`,
-      result.reason,
-    );
+      console.warn(
+        `Kandidatrute ${candidatesToTest[index].id} fejlede`,
+        result.reason,
+      );
 
-    return [];
-  });
+      return [];
+    },
+  );
 
-  if (testedCandidates.length === 0) {
+  if (successfulRoutes.length === 0) {
     return null;
   }
 
-  return testedCandidates.reduce((best, current) =>
-    current.differenceMeters < best.differenceMeters
-      ? current
-      : best,
+  return successfulRoutes.reduce(
+    (bestRoute, currentRoute) =>
+      currentRoute.differenceMeters <
+      bestRoute.differenceMeters
+        ? currentRoute
+        : bestRoute,
   );
 }

@@ -1,4 +1,5 @@
 import axios from "axios";
+
 import {
   GeneratedRoute,
   RouteCoordinate,
@@ -21,9 +22,9 @@ interface OpenRouteServiceResponse {
 const API_URL =
   "https://api.openrouteservice.org/v2/directions/foot-walking/geojson";
 
-export async function generateRoundTripRoute(
+export async function generateRouteWithWaypoints(
   start: RouteCoordinate,
-  waypoint: RouteCoordinate,
+  waypoints: RouteCoordinate[],
 ): Promise<GeneratedRoute> {
   const apiKey = process.env.EXPO_PUBLIC_ORS_API_KEY;
 
@@ -31,14 +32,19 @@ export async function generateRoundTripRoute(
     throw new Error("OpenRouteService API-nøglen mangler.");
   }
 
+  const coordinates = [
+    start,
+    ...waypoints,
+    start,
+  ].map((coordinate) => [
+    coordinate.longitude,
+    coordinate.latitude,
+  ]);
+
   const response = await axios.post<OpenRouteServiceResponse>(
     API_URL,
     {
-      coordinates: [
-        [start.longitude, start.latitude],
-        [waypoint.longitude, waypoint.latitude],
-        [start.longitude, start.latitude],
-      ],
+      coordinates,
     },
     {
       headers: {
@@ -52,7 +58,9 @@ export async function generateRoundTripRoute(
   const feature = response.data.features[0];
 
   if (!feature) {
-    throw new Error("OpenRouteService returnerede ingen rute.");
+    throw new Error(
+      "OpenRouteService returnerede ingen rute.",
+    );
   }
 
   return {
@@ -62,7 +70,16 @@ export async function generateRoundTripRoute(
         longitude,
       }),
     ),
-    distanceMeters: feature.properties.summary.distance,
-    durationSeconds: feature.properties.summary.duration,
+    distanceMeters:
+      feature.properties.summary.distance,
+    durationSeconds:
+      feature.properties.summary.duration,
   };
+}
+
+export async function generateRoundTripRoute(
+  start: RouteCoordinate,
+  waypoint: RouteCoordinate,
+): Promise<GeneratedRoute> {
+  return generateRouteWithWaypoints(start, [waypoint]);
 }

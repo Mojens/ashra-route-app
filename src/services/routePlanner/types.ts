@@ -32,3 +32,9 @@ export interface CandidateRoutePlan {
   id: string;
   waypoints: RouteWaypoint[];
 }
+
+export interface PlannedRoute {
+  route: GeneratedRoute;
+  waypoints: RouteWaypoint[];
+  differenceMeters: number;
+}

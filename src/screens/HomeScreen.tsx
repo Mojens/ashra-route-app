@@ -175,25 +175,22 @@ export default function HomeScreen() {
         placesByCategory: {
           park: parks,
         },
-        placesPerCategory: 3,
+        placesPerCategory: 5,
+        maximumRoutes: 10,
       });
 
-      console.log(
-        "Mulige ruter:",
-        candidateRoutes.map((candidate) => ({
-          id: candidate.id,
-          stops: candidate.waypoints.map(
-            (waypoint) => ({
-              category: waypoint.category,
-              name: waypoint.place.name,
-            }),
-          ),
-        })),
-      );
+      if (candidateRoutes.length === 0) {
+        Alert.alert(
+          "Ingen rutemuligheder",
+          "Vi kunne ikke bygge nogen mulige ruter.",
+        );
+
+        return;
+      }
 
       const plannedRoute = await planBestRoute({
         origin: start,
-        places: parks,
+        candidates: candidateRoutes,
         targetDistanceMeters,
         candidateLimit: 3,
       });
@@ -201,33 +198,48 @@ export default function HomeScreen() {
       if (!plannedRoute) {
         Alert.alert(
           "Ingen rute fundet",
-          "Vi kunne ikke generere en passende rute gennem en park.",
+          "Vi kunne ikke generere en passende rute.",
         );
 
         return;
       }
 
-      const park = plannedRoute.place;
       const route = plannedRoute.route;
+      const selectedWaypoints = plannedRoute.waypoints;
+      const selectedPark = selectedWaypoints[0]?.place;
+
+      if (!selectedPark) {
+        Alert.alert(
+          "Ingen destination fundet",
+          "Ruten indeholder ingen gyldig destination.",
+        );
+
+        return;
+      }
 
       const parkName =
-        park.name !== "Park"
-          ? park.name
+        selectedPark.name !== "Park"
+          ? selectedPark.name
           : await getLocationDescription(
-            park.coordinate,
+            selectedPark.coordinate,
           );
 
       const namedPark: PointOfInterest = {
-        ...park,
+        ...selectedPark,
         name: parkName ?? "Park",
       };
 
       console.log("Valgt rute:", {
-        park: park.name,
         targetKm: targetDistanceMeters / 1000,
         actualKm: route.distanceMeters / 1000,
         differenceKm:
           plannedRoute.differenceMeters / 1000,
+        waypoints: selectedWaypoints.map(
+          (waypoint) => ({
+            category: waypoint.category,
+            name: waypoint.place.name,
+          }),
+        ),
       });
 
       setSelectedPlace(namedPark);
@@ -237,7 +249,13 @@ export default function HomeScreen() {
       setIsPanelCollapsed(true);
 
       mapRef.current?.fitToCoordinates(
-        [...route.coordinates, namedPark.coordinate],
+        [
+          ...route.coordinates,
+          ...selectedWaypoints.map(
+            (waypoint) =>
+              waypoint.place.coordinate,
+          ),
+        ],
         {
           edgePadding: {
             top: 80,

@@ -10,6 +10,7 @@ export type {
 export type {
   CandidateRoutePlan,
   PlannedDestination,
+  PlannedRoute,
   RouteWaypoint,
   ScoredDestination,
   TestedRouteCandidate,
