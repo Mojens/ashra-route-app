@@ -5,7 +5,7 @@ import {
   View,
 } from "react-native";
 
-import { ROUTE_FILTERS } from "../constants/filters";
+import { ROUTE_CATEGORIES } from "../constants/categories";
 import { RouteCategory } from "../types/route";
 
 interface CategorySelectorProps {
@@ -33,7 +33,7 @@ export default function CategorySelector({
         showsHorizontalScrollIndicator={false}
         contentContainerClassName="gap-2"
       >
-        {ROUTE_FILTERS.map((category) => {
+        {ROUTE_CATEGORIES.map((category) => {
           const selectedIndex =
             selectedCategories.indexOf(category.id);
 

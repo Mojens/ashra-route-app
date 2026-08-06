@@ -11,48 +11,56 @@ import MapView, {
   Polyline,
   Region,
 } from "react-native-maps";
-import WaypointMarker from "../components/WaypointMarker";
 import * as Location from "expo-location";
 
 import RoutePanel from "../components/RoutePanel";
+import WaypointMarker from "../components/WaypointMarker";
+import {
+  COLORS,
+  MAP_CONFIG,
+  STEP_CONFIG,
+} from "../constants";
+import { useRoutePlanner } from "../hooks/useRoutePlanner";
 import {
   PointOfInterest,
   RouteCategory,
   RouteCoordinate,
   RouteSegment,
 } from "../types/route";
-import { useRoutePlanner } from "../hooks/useRoutePlanner";
-
 
 export default function HomeScreen() {
-  // Route segmenter til forskellige dele af ruten, som kan bruges til at vise detaljer om hvert segment
-  const [routeSegments, setRouteSegments] =
-    useState<RouteSegment[]>([]);
-
   const mapRef = useRef<MapView>(null);
 
   const [region, setRegion] = useState<Region | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(
+    null,
+  );
 
-  const [selectedSteps, setSelectedSteps] = useState(10000);
-
+  const [selectedSteps, setSelectedSteps] = useState<number>(
+    STEP_CONFIG.defaultSteps,
+  );
   const [selectedCategories, setSelectedCategories] = useState<
     RouteCategory[]
   >(["park"]);
 
-  const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
+  const [isPanelCollapsed, setIsPanelCollapsed] =
+    useState(false);
 
   const [routeCoordinates, setRouteCoordinates] = useState<
     RouteCoordinate[]
   >([]);
 
-  const [routeDistance, setRouteDistance] = useState<number | null>(
-    null,
-  );
+  const [routeSegments, setRouteSegments] = useState<
+    RouteSegment[]
+  >([]);
 
-  const [routeDuration, setRouteDuration] = useState<number | null>(
-    null,
-  );
+  const [routeDistance, setRouteDistance] = useState<
+    number | null
+  >(null);
+
+  const [routeDuration, setRouteDuration] = useState<
+    number | null
+  >(null);
 
   const [selectedWaypoints, setSelectedWaypoints] = useState<
     PointOfInterest[]
@@ -65,10 +73,10 @@ export default function HomeScreen() {
   } = useRoutePlanner();
 
   useEffect(() => {
-    loadCurrentLocation();
+    void loadCurrentLocation();
   }, []);
 
-  const loadCurrentLocation = async () => {
+  const loadCurrentLocation = async (): Promise<void> => {
     try {
       setErrorMessage(null);
 
@@ -82,15 +90,18 @@ export default function HomeScreen() {
         return;
       }
 
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
-      });
+      const location =
+        await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High,
+        });
 
       setRegion({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
-        latitudeDelta: 0.015,
-        longitudeDelta: 0.015,
+        latitudeDelta:
+          MAP_CONFIG.initialRegion.latitudeDelta,
+        longitudeDelta:
+          MAP_CONFIG.initialRegion.longitudeDelta,
       });
     } catch (error) {
       console.error(
@@ -106,7 +117,7 @@ export default function HomeScreen() {
 
   const toggleCategory = (
     category: RouteCategory,
-  ) => {
+  ): void => {
     setSelectedCategories((currentCategories) =>
       currentCategories.includes(category)
         ? currentCategories.filter(
@@ -120,7 +131,7 @@ export default function HomeScreen() {
   const moveCategory = (
     category: RouteCategory,
     direction: "left" | "right",
-  ) => {
+  ): void => {
     setSelectedCategories((currentCategories) => {
       const currentIndex =
         currentCategories.indexOf(category);
@@ -156,7 +167,8 @@ export default function HomeScreen() {
       return reorderedCategories;
     });
   };
-  const handleGenerateRoute = async () => {
+
+  const handleGenerateRoute = async (): Promise<void> => {
     if (!region || isBusy) {
       return;
     }
@@ -173,25 +185,26 @@ export default function HomeScreen() {
         selectedSteps,
       });
 
-      const waypointPlaces = result.waypoints.map(
+      const waypoints = result.waypoints ?? [];
+      const coordinates = result.route.coordinates ?? [];
+      const segments = result.route.segments ?? [];
+
+      const waypointPlaces = waypoints.map(
         ({ place }) => place,
       );
 
       setSelectedWaypoints(waypointPlaces);
-      setRouteCoordinates(result.route.coordinates);
-      setRouteSegments(result.route.segments);
+      setRouteCoordinates(coordinates);
+      setRouteSegments(segments);
       setRouteDistance(result.route.distanceMeters);
       setRouteDuration(result.route.durationSeconds);
       setIsPanelCollapsed(true);
 
       console.log("Valgt rute:", {
-        targetKm:
-          result.targetDistanceMeters / 1000,
-        actualKm:
-          result.route.distanceMeters / 1000,
-        differenceKm:
-          result.differenceMeters / 1000,
-        waypoints: result.waypoints.map(
+        targetKm: result.targetDistanceMeters / 1000,
+        actualKm: result.route.distanceMeters / 1000,
+        differenceKm: result.differenceMeters / 1000,
+        waypoints: waypoints.map(
           ({ category, place }) => ({
             category,
             name: place.name,
@@ -199,23 +212,23 @@ export default function HomeScreen() {
         ),
       });
 
-      mapRef.current?.fitToCoordinates(
-        [
-          ...result.route.coordinates,
-          ...result.waypoints.map(
-            ({ place }) => place.coordinate,
-          ),
-        ],
-        {
-          edgePadding: {
-            top: 80,
-            right: 50,
-            bottom: 180,
-            left: 50,
+      const coordinatesToFit: RouteCoordinate[] = [
+        ...coordinates,
+        ...waypoints.map(
+          ({ place }) => place.coordinate,
+        ),
+      ];
+
+      if (coordinatesToFit.length > 0) {
+        mapRef.current?.fitToCoordinates(
+          coordinatesToFit,
+          {
+            edgePadding:
+              MAP_CONFIG.routeEdgePadding,
+            animated: true,
           },
-          animated: true,
-        },
-      );
+        );
+      }
     } catch (error) {
       console.error(
         "Kunne ikke generere ruten:",
@@ -244,7 +257,7 @@ export default function HomeScreen() {
 
         <Pressable
           className="mt-5 rounded-xl bg-blue-600 px-5 py-3 active:bg-blue-700"
-          onPress={loadCurrentLocation}
+          onPress={() => void loadCurrentLocation()}
         >
           <Text className="font-semibold text-white">
             Prøv igen
@@ -289,7 +302,9 @@ export default function HomeScreen() {
             <Polyline
               key={`route-segment-${index}`}
               coordinates={segment.coordinates}
-              strokeWidth={6}
+              strokeWidth={
+                MAP_CONFIG.routeStrokeWidth
+              }
               strokeColor={getSegmentColor(index)}
               lineCap="round"
               lineJoin="round"
@@ -298,8 +313,10 @@ export default function HomeScreen() {
           : routeCoordinates.length > 0 && (
             <Polyline
               coordinates={routeCoordinates}
-              strokeWidth={6}
-              strokeColor="#2563EB"
+              strokeWidth={
+                MAP_CONFIG.routeStrokeWidth
+              }
+              strokeColor={COLORS.primary}
               lineCap="round"
               lineJoin="round"
             />
@@ -317,7 +334,9 @@ export default function HomeScreen() {
         onToggleCategory={toggleCategory}
         onMoveCategory={moveCategory}
         onToggleCollapsed={() =>
-          setIsPanelCollapsed((current) => !current)
+          setIsPanelCollapsed(
+            (current) => !current,
+          )
         }
         onGenerateRoute={handleGenerateRoute}
       />
@@ -335,34 +354,8 @@ const styles = StyleSheet.create({
   },
 });
 
-function getMarkerColor(
-  category: RouteCategory,
-): string {
-  switch (category) {
-    case "park":
-      return "green";
-
-    case "beach":
-      return "blue";
-
-    case "supermarket":
-      return "orange";
-  }
-}
-
-const SEGMENT_COLORS = [
-  "#F97316", // orange
-  "#16A34A", // grøn
-  "#2563EB", // blå
-  "#9333EA", // lilla
-  "#DC2626", // rød
-  "#0891B2", // cyan
-];
-
-function getSegmentColor(
-  index: number,
-): string {
-  return SEGMENT_COLORS[
-    index % SEGMENT_COLORS.length
+function getSegmentColor(index: number): string {
+  return COLORS.routeSegments[
+    index % COLORS.routeSegments.length
   ];
 }

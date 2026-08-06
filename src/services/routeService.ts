@@ -106,8 +106,8 @@ export async function generateRouteWithWaypoints(
 function createRouteSegments(
   requestedCoordinates: RouteCoordinate[],
   routeCoordinates: RouteCoordinate[],
-  apiSegments: OpenRouteServiceSegment[],
-  wayPointIndexes: number[],
+  apiSegments: OpenRouteServiceSegment[] = [],
+  wayPointIndexes: number[] = [],
 ): RouteSegment[] {
   if (
     apiSegments.length === 0 ||
@@ -117,11 +117,8 @@ function createRouteSegments(
   }
 
   return apiSegments.map((segment, index) => {
-    const startIndex =
-      wayPointIndexes[index];
-
-    const endIndex =
-      wayPointIndexes[index + 1];
+    const startIndex = wayPointIndexes[index];
+    const endIndex = wayPointIndexes[index + 1];
 
     return {
       from: requestedCoordinates[index],
