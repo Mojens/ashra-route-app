@@ -186,6 +186,39 @@ const enUS = {
   "valgt": "selected",
 
   "valgte": "selected",
+
+  "Drej til venstre": "Turn left",
+
+  "Drej til højre": "Turn right",
+
+  "Drej skarpt til venstre": "Turn sharp left",
+
+  "Drej skarpt til højre": "Turn sharp right",
+
+  "Hold let til venstre": "Bear left",
+
+  "Hold let til højre": "Bear right",
+
+  "Fortsæt ligeud": "Continue straight",
+
+  "Kør ind i rundkørslen": "Enter the roundabout",
+
+  "Forlad rundkørslen": "Exit the roundabout",
+
+  "Vend om": "Make a U-turn",
+
+  "Du er fremme": "You have arrived",
+
+  "Start ruten": "Start route",
+
+  "Hold til venstre": "Keep left",
+
+  "Hold til højre": "Keep right",
+
+  "Derefter": "Then",
+
+  "Gå ind i rundkørslen":
+    "Enter the roundabout",
 } as const;
 
 export default enUS;

@@ -2,9 +2,10 @@ import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { CATEGORY_LABELS } from "../constants";
-import { PointOfInterest, RouteSegment } from "../types/route";
+import { NavigationInstruction, PointOfInterest, RouteSegment, } from "../types/route";
 import { formatDistance, formatDurationMinutes } from "../utils/format";
 import { getSegmentColor } from "../utils/routeColors";
+import { getManeuverIcon, getNavigationInstructionText } from "../utils/navigation";
 
 interface ActiveRouteCardProps {
   isVisible: boolean;
@@ -16,6 +17,12 @@ interface ActiveRouteCardProps {
   isOffRoute?: boolean;
   isRerouting?: boolean;
   isOffRouteConfirmed?: boolean;
+
+  currentInstruction?: NavigationInstruction | null;
+  currentInstructionIndex?: number;
+  distanceToInstructionMeters?: number | null;
+  nextInstruction?: NavigationInstruction | null;
+
   onReroute?: () => void;
   onNextStop: () => void;
   onStopRoute: () => void;
@@ -31,6 +38,12 @@ export default function ActiveRouteCard({
   isOffRoute = false,
   isRerouting = false,
   isOffRouteConfirmed = false,
+
+  currentInstruction = null,
+  currentInstructionIndex = 0,
+  distanceToInstructionMeters = null,
+  nextInstruction = null,
+
   onReroute,
   onNextStop,
   onStopRoute,
@@ -75,6 +88,58 @@ export default function ActiveRouteCard({
         pointerEvents="box-none"
         className="flex-1 px-3 pt-3"
       >
+        {currentInstruction && (
+          <View className="mb-4 rounded-3xl bg-blue-600 p-4">
+            <View className="flex-row items-center">
+              <View className="mr-4 h-14 w-14 items-center justify-center rounded-2xl bg-white/20">
+                <Text className="text-3xl text-white">
+                  {getManeuverIcon(
+                    currentInstruction.maneuver,
+                  )}
+                </Text>
+              </View>
+
+              <View className="flex-1">
+                {distanceToInstructionMeters !== null && (
+                  <Text className="text-sm font-semibold text-blue-100">
+                    {formatDistance(
+                      distanceToInstructionMeters,
+                    )}
+                  </Text>
+                )}
+
+                <Text className="mt-1 text-lg font-bold text-white">
+                  {getNavigationInstructionText(
+                    currentInstruction,
+                    t,
+                  )}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+        {nextInstruction && (
+          <View className="mb-4 flex-row items-center rounded-2xl bg-slate-100 px-4 py-3">
+            <Text className="mr-3 text-xl text-slate-700">
+              {getManeuverIcon(
+                nextInstruction.maneuver,
+              )}
+            </Text>
+
+            <View className="flex-1">
+              <Text className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                {t("Derefter")}
+              </Text>
+
+              <Text className="mt-1 font-semibold text-slate-800">
+                {getNavigationInstructionText(
+                  nextInstruction,
+                  t,
+                )}
+              </Text>
+            </View>
+          </View>
+        )}
         <View className="rounded-3xl bg-white p-4 shadow-xl">
           <View className="flex-row items-start justify-between">
             <View className="flex-1 pr-3">

@@ -1,8 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import * as Location from "expo-location";
+
 import { ROUTE_CONFIG } from "../constants";
-import { RouteCoordinate, RouteSegment } from "../types/route";
-import { calculateDistanceToRouteMeters, calculateDistanceMeters } from "../utils/distance";
+import {
+  NavigationInstruction,
+  RouteCoordinate,
+  RouteSegment,
+} from "../types/route";
+import {
+  calculateDistanceToRouteMeters,
+  calculateDistanceMeters,
+} from "../utils/distance";
 
 interface UseActiveRouteNavigationOptions {
   isActive: boolean;
@@ -17,9 +25,13 @@ export function useActiveRouteNavigation({
   segments,
   onDestinationReached,
 }: UseActiveRouteNavigationOptions) {
-  const [distanceFromRouteMeters, setDistanceFromRouteMeters] = useState<number | null>(null);
+  const [
+    distanceFromRouteMeters,
+    setDistanceFromRouteMeters,
+  ] = useState<number | null>(null);
 
-  const [isOffRoute, setIsOffRoute] = useState(false);
+  const [isOffRoute, setIsOffRoute] =
+    useState(false);
 
   const hasReachedCurrentDestinationRef =
     useRef(false);
@@ -38,8 +50,30 @@ export function useActiveRouteNavigation({
   const [heading, setHeading] =
     useState<number | null>(null);
 
+  const [
+    currentInstructionIndex,
+    setCurrentInstructionIndex,
+  ] = useState(0);
+
+  const [
+    currentInstruction,
+    setCurrentInstruction,
+  ] = useState<NavigationInstruction | null>(
+    null,
+  );
+
+  const [
+    distanceToInstructionMeters,
+    setDistanceToInstructionMeters,
+  ] = useState<number | null>(null);
+
   useEffect(() => {
-    hasReachedCurrentDestinationRef.current = false;
+    hasReachedCurrentDestinationRef.current =
+      false;
+
+    setCurrentInstructionIndex(0);
+    setCurrentInstruction(null);
+    setDistanceToInstructionMeters(null);
   }, [currentStopIndex]);
 
   useEffect(() => {
@@ -47,6 +81,11 @@ export function useActiveRouteNavigation({
       setDistanceFromRouteMeters(null);
       setIsOffRoute(false);
       setHeading(null);
+
+      setCurrentInstructionIndex(0);
+      setCurrentInstruction(null);
+      setDistanceToInstructionMeters(null);
+
       return;
     }
 
@@ -56,30 +95,31 @@ export function useActiveRouteNavigation({
 
     let cancelled = false;
 
-    const startWatchingHeading = async () => {
-      try {
-        subscription =
-          await Location.watchHeadingAsync(
-            (headingData) => {
-              if (cancelled) {
-                return;
-              }
+    const startWatchingHeading =
+      async () => {
+        try {
+          subscription =
+            await Location.watchHeadingAsync(
+              (headingData) => {
+                if (cancelled) {
+                  return;
+                }
 
-              const nextHeading =
-                headingData.trueHeading >= 0
-                  ? headingData.trueHeading
-                  : headingData.magHeading;
+                const nextHeading =
+                  headingData.trueHeading >= 0
+                    ? headingData.trueHeading
+                    : headingData.magHeading;
 
-              setHeading(nextHeading);
-            },
+                setHeading(nextHeading);
+              },
+            );
+        } catch (error) {
+          console.error(
+            "Kunne ikke hente retning:",
+            error,
           );
-      } catch (error) {
-        console.error(
-          "Kunne ikke hente retning:",
-          error,
-        );
-      }
-    };
+        }
+      };
 
     void startWatchingHeading();
 
@@ -94,6 +134,11 @@ export function useActiveRouteNavigation({
       setCurrentPosition(null);
       setDistanceToNextStopMeters(null);
       setLocationError(null);
+
+      setCurrentInstructionIndex(0);
+      setCurrentInstruction(null);
+      setDistanceToInstructionMeters(null);
+
       return;
     }
 
@@ -117,11 +162,16 @@ export function useActiveRouteNavigation({
         const permission =
           await Location.getForegroundPermissionsAsync();
 
-        if (permission.status !== "granted") {
+        if (
+          permission.status !== "granted"
+        ) {
           const requested =
             await Location.requestForegroundPermissionsAsync();
 
-          if (requested.status !== "granted") {
+          if (
+            requested.status !==
+            "granted"
+          ) {
             throw new Error(
               "Appen skal have adgang til din lokation.",
             );
@@ -131,10 +181,13 @@ export function useActiveRouteNavigation({
         subscription =
           await Location.watchPositionAsync(
             {
-              accuracy: Location.Accuracy.High,
+              accuracy:
+                Location.Accuracy.High,
+
               distanceInterval:
                 ROUTE_CONFIG.navigation
                   .distanceIntervalMeters,
+
               timeInterval:
                 ROUTE_CONFIG.navigation
                   .timeIntervalMs,
@@ -145,8 +198,10 @@ export function useActiveRouteNavigation({
               }
 
               const position: RouteCoordinate = {
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
+                latitude:
+                  location.coords.latitude,
+                longitude:
+                  location.coords.longitude,
               };
 
               setCurrentPosition(position);
@@ -157,7 +212,9 @@ export function useActiveRouteNavigation({
                   currentSegment.to,
                 );
 
-              setDistanceToNextStopMeters(distance);
+              setDistanceToNextStopMeters(
+                distance,
+              );
 
               const distanceFromRoute =
                 calculateDistanceToRouteMeters(
@@ -176,6 +233,58 @@ export function useActiveRouteNavigation({
                   .offRouteDistanceMeters;
 
               setIsOffRoute(offRoute);
+
+              /*
+               * TURN BY TURN
+               */
+              const instructions =
+                currentSegment.instructions ??
+                [];
+
+              const instruction =
+                instructions[
+                currentInstructionIndex
+                ];
+
+              if (instruction) {
+                setCurrentInstruction(
+                  instruction,
+                );
+
+                const distanceToInstruction =
+                  calculateDistanceMeters(
+                    position,
+                    instruction.coordinate,
+                  );
+
+                setDistanceToInstructionMeters(
+                  distanceToInstruction,
+                );
+
+                const shouldAdvanceInstruction =
+                  distanceToInstruction <=
+                  ROUTE_CONFIG.navigation
+                    .instructionReachedDistanceMeters;
+
+                const hasNextInstruction =
+                  currentInstructionIndex <
+                  instructions.length - 1;
+
+                if (
+                  shouldAdvanceInstruction &&
+                  hasNextInstruction
+                ) {
+                  setCurrentInstructionIndex(
+                    (current) =>
+                      current + 1,
+                  );
+                }
+              } else {
+                setCurrentInstruction(null);
+                setDistanceToInstructionMeters(
+                  null,
+                );
+              }
 
               const hasReachedDestination =
                 distance <=
@@ -218,16 +327,24 @@ export function useActiveRouteNavigation({
   }, [
     isActive,
     currentStopIndex,
+    currentInstructionIndex,
     segments,
     onDestinationReached,
   ]);
 
   return {
     currentPosition,
+
     distanceToNextStopMeters,
     distanceFromRouteMeters,
+
     isOffRoute,
+
     locationError,
     heading,
+
+    currentInstructionIndex,
+    currentInstruction,
+    distanceToInstructionMeters,
   };
 }

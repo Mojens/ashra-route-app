@@ -39,5 +39,6 @@ export const ROUTE_CONFIG = {
     waypointReachedDistanceMeters: 30,
     offRouteDistanceMeters: 60,
     offRouteConfirmationMs: 10000,
+    instructionReachedDistanceMeters: 25,
   },
 } as const;

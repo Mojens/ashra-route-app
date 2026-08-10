@@ -22,7 +22,7 @@ import { findAvailableCategories } from "../services/overpassService";
 export default function HomeScreen() {
   // DEV STATES
   const [isDevOffRoute, setIsDevOffRoute] = useState(false);
-  // DEV STATES
+
 
   // Catergory selection state
   const [availableCategories, setAvailableCategories] = useState<RouteCategory[]>([]);
@@ -149,6 +149,12 @@ export default function HomeScreen() {
         2,
       ),
     );
+    // DEV
+    console.log("TURN BY TURN LIVE:", {
+      currentInstructionIndex,
+      currentInstruction,
+      distanceToInstructionMeters,
+    });
   };
 
   // DEV TEST
@@ -430,6 +436,10 @@ export default function HomeScreen() {
     isOffRoute,
     locationError: navigationLocationError,
     heading,
+    // Turn-by-turn
+    currentInstructionIndex,
+    currentInstruction,
+    distanceToInstructionMeters,
   } = useActiveRouteNavigation({
     isActive: isRouteActive,
     currentStopIndex,
@@ -438,6 +448,27 @@ export default function HomeScreen() {
       handleDestinationReached,
   });
 
+  // Næste turn-by-turn instruction
+  const currentSegment =
+    routeSegments[currentStopIndex];
+
+  const nextInstruction =
+    currentSegment?.instructions[
+    currentInstructionIndex + 1
+    ] ?? null;
+  // DEV
+  /*
+  console.log("TURN BY TURN LIVE:", {
+    currentInstructionIndex,
+    currentInstruction,
+    distanceToInstructionMeters,
+  });
+  // DEV
+  console.log(
+    "ACTIVE SEGMENT INSTRUCTIONS:",
+    routeSegments[currentStopIndex]?.instructions,
+  );
+  */
   // DEV TEST
 
   const effectiveIsOffRoute =
@@ -870,6 +901,13 @@ export default function HomeScreen() {
         onReroute={handleReroute}
         onNextStop={handleNextStop}
         onStopRoute={handleStopRoute}
+        // Turn by turn
+        currentInstruction={currentInstruction}
+        currentInstructionIndex={currentInstructionIndex}
+        distanceToInstructionMeters={distanceToInstructionMeters}
+        nextInstruction={
+          nextInstruction
+        }
       />
       <RouteSuggestionsModal
         visible={isRouteSuggestionsVisible}

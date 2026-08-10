@@ -159,6 +159,42 @@ const daDK = {
 
   "valgt": "valgt",
   "valgte": "valgte",
+
+  "Drej til venstre": "Drej til venstre",
+
+  "Drej til højre": "Drej til højre",
+
+  "Drej skarpt til venstre": "Drej skarpt til venstre",
+
+  "Drej skarpt til højre": "Drej skarpt til højre",
+
+  "Hold let til venstre": "Hold let til venstre",
+
+  "Hold let til højre": "Hold let til højre",
+
+  "Fortsæt ligeud": "Fortsæt ligeud",
+
+  "Kør ind i rundkørslen": "Kør ind i rundkørslen",
+
+  "Forlad rundkørslen": "Forlad rundkørslen",
+
+  "Vend om": "Vend om",
+
+  "Du er fremme": "Du er fremme",
+
+  "Start ruten": "Start ruten",
+
+  "Hold til venstre": "Hold til venstre",
+
+  "Hold til højre": "Hold til højre",
+  
+  "Derefter": "Derefter",
+
+"Gå ind i rundkørslen":
+  "Gå ind i rundkørslen",
+
+
+
 } as const;
 
 export default daDK;
