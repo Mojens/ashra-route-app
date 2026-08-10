@@ -8,7 +8,10 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.ashra-route-app"
+      "bundleIdentifier": "com.anonymous.ashra-route-app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -16,6 +19,11 @@
     "plugins": [
       "expo-localization",
       "expo-status-bar"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f2c7ada9-0466-4ab4-b9f6-bd5aaa21ff87"
+      }
+    }
   }
 }
