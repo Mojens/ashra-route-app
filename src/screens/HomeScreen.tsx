@@ -7,7 +7,7 @@ import WaypointMarker from "../components/WaypointMarker";
 import { COLORS, MAP_CONFIG, STEP_CONFIG } from "../constants";
 import { useRoutePlanner } from "../hooks/useRoutePlanner";
 import { PointOfInterest, RouteCategory, RouteCoordinate, RouteSegment } from "../types/route";
-import { getSegmentColor } from "../utils/routeColors";
+import { getSegmentColor, getSegmentStrokeColor } from "../utils/routeColors";
 import RouteOverviewCard from "../components/RouteOverviewCard";
 import ActiveRouteCard from "../components/ActiveRouteCard";
 import RouteSuggestionsModal from "../components/RouteSuggestionsModal";
@@ -255,6 +255,32 @@ export default function HomeScreen() {
     void loadCurrentLocation();
   }, []);
 
+  useEffect(() => {
+    if (
+      !isRouteActive ||
+      !currentPosition ||
+      isStopReachedVisible
+    ) {
+      return;
+    }
+
+    mapRef.current?.animateToRegion(
+      {
+        latitude: currentPosition.latitude,
+        longitude: currentPosition.longitude,
+        latitudeDelta:
+          MAP_CONFIG.navigation.latitudeDelta,
+        longitudeDelta:
+          MAP_CONFIG.navigation.longitudeDelta,
+      },
+      MAP_CONFIG.navigation.animationDurationMs,
+    );
+  }, [
+    currentPosition,
+    isRouteActive,
+    isStopReachedVisible,
+  ]);
+
   const loadCurrentLocation = async (): Promise<void> => {
     try {
       setErrorMessage(null);
@@ -457,26 +483,51 @@ export default function HomeScreen() {
         showsUserLocation
         showsMyLocationButton
       >
-        {selectedWaypoints.map((place, index) => (
-          <WaypointMarker
-            key={`${place.category}-${place.id}-${index}`}
-            place={place}
-            stopNumber={index + 1}
-            color={getSegmentColor(index)}
-          />
-        ))}
+        
+        {selectedWaypoints.map((place, index) => {
+          const shouldShowMarker =
+            !isRouteActive ||
+            index >= currentStopIndex;
+
+          if (!shouldShowMarker) {
+            return null;
+          }
+
+          return (
+            <WaypointMarker
+              key={`${place.category}-${place.id}-${index}`}
+              place={place}
+              stopNumber={index + 1}
+              color={getSegmentColor(index)}
+            />
+          );
+        })}
 
         {routeSegments.length > 0
-          ? routeSegments.map((segment, index) => (
-            <Polyline
-              key={`route-segment-${index}`}
-              coordinates={segment.coordinates}
-              strokeWidth={MAP_CONFIG.routeStrokeWidth}
-              strokeColor={getSegmentColor(index)}
-              lineCap="round"
-              lineJoin="round"
-            />
-          ))
+          ? routeSegments.map((segment, index) => {
+            const isCurrentSegment =
+              !isRouteActive ||
+              index === currentStopIndex;
+
+            return (
+              <Polyline
+                key={`route-segment-${index}`}
+                coordinates={segment.coordinates}
+                strokeWidth={
+                  isCurrentSegment
+                    ? MAP_CONFIG.routeStrokeWidth
+                    : MAP_CONFIG.routeStrokeWidth - 2
+                }
+                strokeColor={getSegmentStrokeColor(
+                  index,
+                  isCurrentSegment,
+                  isRouteActive,
+                )}
+                lineCap="round"
+                lineJoin="round"
+              />
+            );
+          })
           : routeCoordinates.length > 0 && (
             <Polyline
               coordinates={routeCoordinates}
