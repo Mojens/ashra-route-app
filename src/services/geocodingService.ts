@@ -1,6 +1,6 @@
 import axios from "axios";
-
-import { RouteCoordinate } from "../types/route";
+import { RouteCategory, RouteCoordinate } from "../types/route";
+import { CATEGORY_LABELS } from "../constants";
 
 interface NominatimAddress {
   road?: string;
@@ -26,27 +26,32 @@ const NOMINATIM_URL =
 
 export async function getLocationDescription(
   coordinate: RouteCoordinate,
+  category: RouteCategory,
 ): Promise<string | null> {
   try {
-    const response = await axios.get<NominatimResponse>(
-      NOMINATIM_URL,
-      {
-        params: {
-          lat: coordinate.latitude,
-          lon: coordinate.longitude,
-          format: "jsonv2",
-          addressdetails: 1,
-          zoom: 18,
-          "accept-language": "da",
+    const response =
+      await axios.get<NominatimResponse>(
+        NOMINATIM_URL,
+        {
+          params: {
+            lat: coordinate.latitude,
+            lon: coordinate.longitude,
+            format: "jsonv2",
+            addressdetails: 1,
+            zoom: 18,
+            "accept-language": "da",
+          },
+          headers: {
+            Accept: "application/json",
+          },
+          timeout: 10000,
         },
-        headers: {
-          Accept: "application/json",
-        },
-        timeout: 10000,
-      },
-    );
+      );
 
     const address = response.data.address;
+
+    const categoryLabel =
+      CATEGORY_LABELS[category];
 
     const road =
       address?.road ??
@@ -54,7 +59,7 @@ export async function getLocationDescription(
       address?.footway;
 
     if (road) {
-      return `Park ved ${road}`;
+      return `${categoryLabel} ved ${road}`;
     }
 
     const area =
@@ -67,7 +72,7 @@ export async function getLocationDescription(
       address?.village;
 
     if (area) {
-      return `Park i ${area}`;
+      return `${categoryLabel} i ${area}`;
     }
 
     return null;

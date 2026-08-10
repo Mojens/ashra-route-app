@@ -1,5 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
-import { ROUTE_CONFIG } from "../constants";
+import {
+  CATEGORY_LABELS,
+  ROUTE_CATEGORIES,
+  ROUTE_CONFIG,
+} from "../constants";
 import { getLocationDescription } from "../services/geocodingService";
 import {
   buildCandidateRoutes,
@@ -217,9 +221,7 @@ function validateCategoryResults(
       .join(", ");
 
   throw new Error(
-    `Vi kunne ikke finde ${categoryNames} inden for ${(
-      searchRadiusMeters / 1000
-    ).toFixed(1)} km.`,
+    `Vi kunne ikke finde følgende steder i området: ${categoryNames}.`,
   );
 }
 
@@ -235,6 +237,7 @@ async function addWaypointFallbackNames(
       const description =
         await getLocationDescription(
           waypoint.place.coordinate,
+          waypoint.place.category,
         );
 
       if (!description) {
@@ -252,29 +255,17 @@ async function addWaypointFallbackNames(
   );
 }
 
-function isFallbackName(
-  place: PointOfInterest,
-): boolean {
-  const fallbackNames = [
-    "Park",
-    "Strand",
-    "Supermarked",
-  ];
+function isFallbackName(place: PointOfInterest): boolean {
+  const fallbackNames =
+    ROUTE_CATEGORIES.map(
+      (category) => category.label,
+    );
 
-  return fallbackNames.includes(place.name);
+  return fallbackNames.includes(
+    place.name,
+  );
 }
 
-function getCategoryLabel(
-  category: RouteCategory,
-): string {
-  switch (category) {
-    case "park":
-      return "en park";
-
-    case "beach":
-      return "en strand";
-
-    case "supermarket":
-      return "et supermarked";
-  }
+function getCategoryLabel(category: RouteCategory): string {
+  return CATEGORY_LABELS[category];
 }

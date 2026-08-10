@@ -12,8 +12,32 @@ export type RouteCategory =
   | "cinema"
   | "fitness"
   | "shoppingMall"
-  | "viewpoint";
-  
+  | "viewpoint"
+  | "fastFood"
+  | "iceCream"
+  | "bar"
+  | "pub"
+  | "convenience"
+  | "clothes"
+  | "books"
+  | "sportsShop"
+  | "gardenCentre"
+  | "forest"
+  | "natureReserve"
+  | "picnicSite"
+  | "dogPark"
+  | "sportsCentre"
+  | "swimmingPool"
+  | "stadium"
+  | "attraction"
+  | "monument"
+  | "artwork"
+  | "gallery"
+  | "zoo"
+  | "castle"
+  | "toilets"
+  | "drinkingWater";
+
 export interface RouteCategoryOption {
   id: RouteCategory;
   label: string;
