@@ -1,31 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import MapView, {
-  Polyline,
-  Region,
-} from "react-native-maps";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import MapView, { Polyline, Region } from "react-native-maps";
 import * as Location from "expo-location";
 import RoutePanel from "../components/RoutePanel";
 import WaypointMarker from "../components/WaypointMarker";
-import {
-  COLORS,
-  MAP_CONFIG,
-  STEP_CONFIG,
-} from "../constants";
+import { COLORS, MAP_CONFIG, STEP_CONFIG } from "../constants";
 import { useRoutePlanner } from "../hooks/useRoutePlanner";
-import {
-  PointOfInterest,
-  RouteCategory,
-  RouteCoordinate,
-  RouteSegment,
-} from "../types/route";
+import { PointOfInterest, RouteCategory, RouteCoordinate, RouteSegment } from "../types/route";
 import { getSegmentColor } from "../utils/routeColors";
 import RouteOverviewCard from "../components/RouteOverviewCard";
 import ActiveRouteCard from "../components/ActiveRouteCard";
@@ -143,7 +124,7 @@ export default function HomeScreen() {
     setIsPanelCollapsed(true);
   };
 
-  const handleNextStop = (): void => {
+  const handleNextStop = useCallback((): void => {
     if (
       currentStopIndex >=
       routeSegments.length - 1
@@ -162,7 +143,11 @@ export default function HomeScreen() {
     setCurrentStopIndex(
       (current) => current + 1,
     );
-  };
+  }, [
+    currentStopIndex,
+    routeSegments.length,
+    t,
+  ]);
 
   const handleStopRoute = (): void => {
     setIsRouteActive(false);
@@ -184,23 +169,24 @@ export default function HomeScreen() {
     isActive: isRouteActive,
     currentStopIndex,
     segments: routeSegments,
+    onDestinationReached: handleNextStop,
   });
   useEffect(() => {
-  if (!isRouteActive) {
-    return;
-  }
+    if (!isRouteActive) {
+      return;
+    }
 
-  console.log("Live navigation:", {
+    console.log("Live navigation:", {
+      currentPosition,
+      distanceToNextStopMeters,
+      navigationLocationError,
+    });
+  }, [
     currentPosition,
     distanceToNextStopMeters,
     navigationLocationError,
-  });
-}, [
-  currentPosition,
-  distanceToNextStopMeters,
-  navigationLocationError,
-  isRouteActive,
-]);
+    isRouteActive,
+  ]);
 
   useEffect(() => {
     void loadCurrentLocation();
