@@ -66,8 +66,8 @@ export default function HomeScreen() {
   const [selectedSteps, setSelectedSteps] = useState<number>(
     STEP_CONFIG.defaultSteps,
   );
- const [selectedCategories, setSelectedCategories] =
-  useState<RouteCategory[]>([]);
+  const [selectedCategories, setSelectedCategories] =
+    useState<RouteCategory[]>([]);
 
   const [isPanelCollapsed, setIsPanelCollapsed] =
     useState(false);
@@ -135,6 +135,20 @@ export default function HomeScreen() {
         },
       );
     }
+    // LOG
+    console.log(
+      "TURN BY TURN:",
+      JSON.stringify(
+        result.route.segments.map(
+          (segment, segmentIndex) => ({
+            segmentIndex,
+            instructions: segment.instructions,
+          }),
+        ),
+        null,
+        2,
+      ),
+    );
   };
 
   // DEV TEST

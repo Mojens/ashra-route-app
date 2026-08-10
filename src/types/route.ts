@@ -37,6 +37,23 @@ export type RouteCategory =
   | "castle"
   | "toilets"
   | "drinkingWater";
+  
+export type NavigationManeuver =
+  | "left"
+  | "right"
+  | "sharp-left"
+  | "sharp-right"
+  | "slight-left"
+  | "slight-right"
+  | "straight"
+  | "roundabout"
+  | "exit-roundabout"
+  | "u-turn"
+  | "arrive"
+  | "depart"
+  | "keep-left"
+  | "keep-right"
+  | "unknown";
 
 export interface RouteCategoryOption {
   id: RouteCategory;
@@ -73,10 +90,30 @@ export interface GeneratedRoute {
   segments: RouteSegment[];
 }
 
+export interface NavigationInstruction {
+  instruction: string;
+
+  distanceMeters: number;
+
+  durationSeconds: number;
+
+  maneuver: NavigationManeuver;
+
+  /**
+   * Index i route.coordinates hvor instruktionen starter/slutter.
+   */
+  wayPoints: [number, number];
+
+  /**
+   * Position hvor næste manøvre cirka sker.
+   */
+  coordinate: RouteCoordinate;
+}
 export interface RouteSegment {
   from: RouteCoordinate;
   to: RouteCoordinate;
   coordinates: RouteCoordinate[];
   distanceMeters: number;
   durationSeconds: number;
+  instructions: NavigationInstruction[];
 }

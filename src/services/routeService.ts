@@ -3,24 +3,37 @@ import axios from "axios";
 import { ROUTE_CONFIG } from "../constants";
 import {
   GeneratedRoute,
+  NavigationInstruction,
+  NavigationManeuver,
   RouteCoordinate,
   RouteSegment,
 } from "../types/route";
 
+interface OpenRouteServiceStep {
+  distance: number;
+  duration: number;
+  type: number;
+  instruction: string;
+  way_points: [number, number];
+}
+
 interface OpenRouteServiceSegment {
   distance: number;
   duration: number;
+  steps?: OpenRouteServiceStep[];
 }
 
 interface OpenRouteServiceFeature {
   geometry: {
     coordinates: [number, number][];
   };
+
   properties: {
     summary: {
       distance: number;
       duration: number;
     };
+
     segments?: OpenRouteServiceSegment[];
     way_points?: number[];
   };
@@ -63,12 +76,16 @@ export async function generateRouteWithWaypoints(
     await axios.post<OpenRouteServiceResponse>(
       API_URL,
       {
-        coordinates: requestedCoordinates.map(
-          ({ longitude, latitude }) => [
-            longitude,
-            latitude,
-          ],
-        ),
+        coordinates:
+          requestedCoordinates.map(
+            ({ longitude, latitude }) => [
+              longitude,
+              latitude,
+            ],
+          ),
+
+        instructions: true,
+        instructions_format: "text",
       },
       {
         headers: {
@@ -104,54 +121,15 @@ export async function generateRouteWithWaypoints(
 
   return {
     coordinates: routeCoordinates,
+
     distanceMeters:
       feature.properties.summary.distance,
+
     durationSeconds:
       feature.properties.summary.duration,
+
     segments,
   };
-}
-
-function createRouteSegments(
-  requestedCoordinates: RouteCoordinate[],
-  routeCoordinates: RouteCoordinate[],
-  apiSegments: OpenRouteServiceSegment[],
-  wayPointIndexes: number[],
-): RouteSegment[] {
-  if (
-    apiSegments.length === 0 ||
-    wayPointIndexes.length < 2
-  ) {
-    return [];
-  }
-
-  return apiSegments.map((segment, index) => {
-    const startIndex =
-      wayPointIndexes[index];
-
-    const endIndex =
-      wayPointIndexes[index + 1];
-
-    if (
-      startIndex === undefined ||
-      endIndex === undefined
-    ) {
-      throw new Error(
-        "OpenRouteService returnerede ugyldige waypoint-indekser.",
-      );
-    }
-
-    return {
-      from: requestedCoordinates[index],
-      to: requestedCoordinates[index + 1],
-      coordinates: routeCoordinates.slice(
-        startIndex,
-        endIndex + 1,
-      ),
-      distanceMeters: segment.distance,
-      durationSeconds: segment.duration,
-    };
-  });
 }
 
 export async function generateRoundTripRoute(
@@ -167,7 +145,8 @@ export async function generateRoundTripRoute(
 export async function generateFreeRoundTripRoute(
   origin: RouteCoordinate,
   targetDistanceMeters: number,
-  seed = ROUTE_CONFIG.freeRoundTrip.defaultSeed,
+  seed =
+    ROUTE_CONFIG.freeRoundTrip.defaultSeed,
 ): Promise<GeneratedRoute> {
   const apiKey =
     process.env.EXPO_PUBLIC_ORS_API_KEY;
@@ -188,11 +167,18 @@ export async function generateFreeRoundTripRoute(
             origin.latitude,
           ],
         ],
+
+        instructions: true,
+        instructions_format: "text",
+
         options: {
           round_trip: {
             length: targetDistanceMeters,
+
             points:
-              ROUTE_CONFIG.freeRoundTrip.points,
+              ROUTE_CONFIG.freeRoundTrip
+                .points,
+
             seed,
           },
         },
@@ -202,8 +188,8 @@ export async function generateFreeRoundTripRoute(
           Authorization: apiKey,
           "Content-Type": "application/json",
         },
-        timeout:
-          ROUTE_CONFIG.openRouteService.timeoutMs,
+
+        timeout: timeoutMs,
       },
     );
 
@@ -223,13 +209,44 @@ export async function generateFreeRoundTripRoute(
       }),
     );
 
+  const apiSegment =
+    feature.properties.segments?.[0];
+
+  const segment: RouteSegment | null =
+    apiSegment
+      ? {
+        from: origin,
+        to: origin,
+
+        coordinates:
+          routeCoordinates,
+
+        distanceMeters:
+          apiSegment.distance,
+
+        durationSeconds:
+          apiSegment.duration,
+
+        instructions:
+          createNavigationInstructions(
+            apiSegment.steps,
+            routeCoordinates,
+          ),
+      }
+      : null;
+
   return {
     coordinates: routeCoordinates,
+
     distanceMeters:
       feature.properties.summary.distance,
+
     durationSeconds:
       feature.properties.summary.duration,
-    segments: [],
+
+    segments: segment
+      ? [segment]
+      : [],
   };
 }
 
@@ -261,20 +278,24 @@ export async function generateRouteFromPosition(
     await axios.post<OpenRouteServiceResponse>(
       API_URL,
       {
-        coordinates: requestedCoordinates.map(
-          ({ longitude, latitude }) => [
-            longitude,
-            latitude,
-          ],
-        ),
+        coordinates:
+          requestedCoordinates.map(
+            ({ longitude, latitude }) => [
+              longitude,
+              latitude,
+            ],
+          ),
+
+        instructions: true,
+        instructions_format: "text",
       },
       {
         headers: {
           Authorization: apiKey,
           "Content-Type": "application/json",
         },
-        timeout:
-          ROUTE_CONFIG.openRouteService.timeoutMs,
+
+        timeout: timeoutMs,
       },
     );
 
@@ -303,10 +324,174 @@ export async function generateRouteFromPosition(
 
   return {
     coordinates: routeCoordinates,
+
     distanceMeters:
       feature.properties.summary.distance,
+
     durationSeconds:
       feature.properties.summary.duration,
+
     segments,
   };
+}
+
+function createRouteSegments(
+  requestedCoordinates: RouteCoordinate[],
+  routeCoordinates: RouteCoordinate[],
+  apiSegments: OpenRouteServiceSegment[],
+  wayPointIndexes: number[],
+): RouteSegment[] {
+  if (
+    apiSegments.length === 0 ||
+    wayPointIndexes.length < 2
+  ) {
+    return [];
+  }
+
+  return apiSegments.map(
+    (segment, index) => {
+      const startIndex =
+        wayPointIndexes[index];
+
+      const endIndex =
+        wayPointIndexes[index + 1];
+
+      if (
+        startIndex === undefined ||
+        endIndex === undefined
+      ) {
+        throw new Error(
+          "OpenRouteService returnerede ugyldige waypoint-indekser.",
+        );
+      }
+
+      return {
+        from:
+          requestedCoordinates[index],
+
+        to:
+          requestedCoordinates[
+          index + 1
+          ],
+
+        coordinates:
+          routeCoordinates.slice(
+            startIndex,
+            endIndex + 1,
+          ),
+
+        distanceMeters:
+          segment.distance,
+
+        durationSeconds:
+          segment.duration,
+
+        instructions:
+          createNavigationInstructions(
+            segment.steps,
+            routeCoordinates,
+          ),
+      };
+    },
+  );
+}
+
+function createNavigationInstructions(
+  steps:
+    | OpenRouteServiceStep[]
+    | undefined,
+
+  routeCoordinates: RouteCoordinate[],
+): NavigationInstruction[] {
+  if (!steps) {
+    return [];
+  }
+
+  return steps.map((step) => {
+    const [
+      startIndex,
+      endIndex,
+    ] = step.way_points;
+
+    const coordinate =
+      routeCoordinates[endIndex] ??
+      routeCoordinates[startIndex] ??
+      routeCoordinates[
+      routeCoordinates.length - 1
+      ];
+
+    return {
+      instruction:
+        step.instruction,
+
+      distanceMeters:
+        step.distance,
+
+      durationSeconds:
+        step.duration,
+
+      maneuver:
+        mapInstructionType(
+          step.type,
+        ),
+
+      wayPoints: [
+        startIndex,
+        endIndex,
+      ],
+
+      coordinate,
+    };
+  });
+}
+
+function mapInstructionType(
+  type: number,
+): NavigationManeuver {
+  switch (type) {
+    case 0:
+      return "left";
+
+    case 1:
+      return "right";
+
+    case 2:
+      return "sharp-left";
+
+    case 3:
+      return "sharp-right";
+
+    case 4:
+      return "slight-left";
+
+    case 5:
+      return "slight-right";
+
+    case 6:
+      return "straight";
+
+    case 7:
+      return "roundabout";
+
+    case 8:
+      return "exit-roundabout";
+
+    case 9:
+      return "u-turn";
+
+    case 10:
+      return "arrive";
+
+    case 11:
+      return "depart";
+
+    case 12:
+      return "keep-left";
+
+    case 13:
+      return "keep-right";
+
+    default:
+      return "unknown";
+  }
 }
