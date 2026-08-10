@@ -120,7 +120,9 @@ export default function HomeScreen() {
       );
     }
   };
-
+  const simulateDestinationReached = () => {
+    handleDestinationReached();
+  };
   const handleStartRoute = (): void => {
     if (routeSegments.length === 0) {
       Alert.alert(
@@ -485,6 +487,7 @@ export default function HomeScreen() {
             />
           )}
       </MapView>
+
       <StopReachedBanner
         isVisible={isStopReachedVisible}
         placeName={reachedPlaceName}
