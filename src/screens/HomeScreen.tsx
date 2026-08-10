@@ -16,11 +16,16 @@ import { useTranslation } from "react-i18next";
 import { useActiveRouteNavigation } from "../hooks/useActiveRouteNavigation";
 import * as Haptics from "expo-haptics";
 import StopReachedBanner from "../components/StopReachedBanner";
+import { generateRouteFromPosition } from "../services/routeService";
 
 export default function HomeScreen() {
   // Reached banner state
   const [isStopReachedVisible, setIsStopReachedVisible] =
     useState(false);
+
+  // Rerouting state
+  const [isRerouting, setIsRerouting] = useState(false);
+  const [routeStartPosition, setRouteStartPosition] = useState<RouteCoordinate | null>(null);
 
   const [reachedPlaceName, setReachedPlaceName] =
     useState<string | null>(null);
@@ -124,6 +129,95 @@ export default function HomeScreen() {
   // Test simulation function til sidst
   const simulateDestinationReached = () => {
     handleDestinationReached();
+  };
+
+  const handleReroute = async (): Promise<void> => {
+    if (
+      !currentPosition ||
+      isRerouting ||
+      !isRouteActive
+    ) {
+      return;
+    }
+
+    try {
+      setIsRerouting(true);
+
+      const remainingWaypoints =
+        selectedWaypoints.slice(currentStopIndex);
+
+      const remainingWaypointCoordinates =
+        remainingWaypoints.map(
+          (place) => place.coordinate,
+        );
+
+      const destinations: RouteCoordinate[] = [
+        ...remainingWaypointCoordinates,
+        ...(routeStartPosition
+          ? [routeStartPosition]
+          : []),
+      ];
+
+      if (destinations.length === 0) {
+        Alert.alert(
+          t("Ingen destination"),
+          t(
+            "Der er ingen resterende stop at navigere til.",
+          ),
+        );
+
+        return;
+      }
+
+      const route =
+        await generateRouteFromPosition(
+          currentPosition,
+          destinations,
+        );
+
+      /*
+       * Efter rerouting bliver de resterende
+       * waypoints den nye waypoint-liste.
+       */
+      setSelectedWaypoints(remainingWaypoints);
+
+      setRouteCoordinates(route.coordinates);
+      setRouteSegments(route.segments ?? []);
+      setRouteDistance(route.distanceMeters);
+      setRouteDuration(route.durationSeconds);
+
+      /*
+       * Den nye rute starter fra brugerens
+       * nuværende position.
+       */
+      setCurrentStopIndex(0);
+
+      if (route.coordinates.length > 0) {
+        mapRef.current?.fitToCoordinates(
+          [
+            ...route.coordinates,
+            ...destinations,
+          ],
+          {
+            edgePadding:
+              MAP_CONFIG.routeEdgePadding,
+            animated: true,
+          },
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Kunne ikke genberegne ruten:",
+        error,
+      );
+
+      Alert.alert(
+        t("Ruten kunne ikke genberegnes"),
+        t("Prøv igen om lidt."),
+      );
+    } finally {
+      setIsRerouting(false);
+    }
   };
 
   const handleStartRoute = (): void => {
@@ -431,7 +525,7 @@ export default function HomeScreen() {
       latitude: region.latitude,
       longitude: region.longitude,
     };
-
+    setRouteStartPosition(origin);
     try {
       const suggestions =
         await generateRoutePlans({
@@ -589,6 +683,7 @@ export default function HomeScreen() {
         segments={routeSegments}
         isVisible={
           isPanelCollapsed &&
+          !isRouteActive &&
           routeCoordinates.length > 0
         }
         isExpanded={isRouteOverviewExpanded}
@@ -618,6 +713,8 @@ export default function HomeScreen() {
         }
         locationError={navigationLocationError}
         isOffRoute={isOffRoute}
+        isRerouting={isRerouting}
+        onReroute={handleReroute}
         onNextStop={handleNextStop}
         onStopRoute={handleStopRoute}
       />

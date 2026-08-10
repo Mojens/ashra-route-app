@@ -14,6 +14,8 @@ interface ActiveRouteCardProps {
   distanceToNextStopMeters?: number | null;
   locationError?: string | null;
   isOffRoute?: boolean;
+  isRerouting?: boolean;
+  onReroute?: () => void;
   onNextStop: () => void;
   onStopRoute: () => void;
 }
@@ -26,6 +28,8 @@ export default function ActiveRouteCard({
   distanceToNextStopMeters = null,
   locationError = null,
   isOffRoute = false,
+  isRerouting = false,
+  onReroute,
   onNextStop,
   onStopRoute,
 }: ActiveRouteCardProps) {
@@ -156,10 +160,27 @@ export default function ActiveRouteCard({
               </Text>
 
               <Text className="mt-1 text-sm text-orange-600">
-                {t(
-                  "Gå tilbage mod den markerede rute.",
-                )}
+                {t("Gå tilbage mod den markerede rute.")}
               </Text>
+
+              {onReroute && (
+                <Pressable
+                  onPress={onReroute}
+                  disabled={isRerouting}
+                  className={[
+                    "mt-3 items-center rounded-xl py-3",
+                    isRerouting
+                      ? "bg-orange-300"
+                      : "bg-orange-600 active:bg-orange-700",
+                  ].join(" ")}
+                >
+                  <Text className="font-bold text-white">
+                    {isRerouting
+                      ? t("Genberegner rute...")
+                      : t("Genberegn rute")}
+                  </Text>
+                </Pressable>
+              )}
             </View>
           )}
 

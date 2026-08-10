@@ -137,10 +137,13 @@ const enGB = {
   "Færdig": "Done",
 
   "Du er gået væk fra ruten":
-  "You are off route",
+    "You are off route",
 
-"Gå tilbage mod den markerede rute.":
-  "Head back towards the marked route.",
+  "Gå tilbage mod den markerede rute.":
+    "Head back towards the marked route.",
+
+  "Genberegn rute": "Recalculate route",
+  "Genberegner rute...": "Recalculating route...",
 
 } as const;
 

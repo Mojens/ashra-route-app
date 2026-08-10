@@ -232,3 +232,81 @@ export async function generateFreeRoundTripRoute(
     segments: [],
   };
 }
+
+export async function generateRouteFromPosition(
+  start: RouteCoordinate,
+  destinations: RouteCoordinate[],
+): Promise<GeneratedRoute> {
+  const apiKey =
+    process.env.EXPO_PUBLIC_ORS_API_KEY;
+
+  if (!apiKey) {
+    throw new Error(
+      "OpenRouteService API-nøglen mangler.",
+    );
+  }
+
+  if (destinations.length === 0) {
+    throw new Error(
+      "Der mangler en destination.",
+    );
+  }
+
+  const requestedCoordinates = [
+    start,
+    ...destinations,
+  ];
+
+  const response =
+    await axios.post<OpenRouteServiceResponse>(
+      API_URL,
+      {
+        coordinates: requestedCoordinates.map(
+          ({ longitude, latitude }) => [
+            longitude,
+            latitude,
+          ],
+        ),
+      },
+      {
+        headers: {
+          Authorization: apiKey,
+          "Content-Type": "application/json",
+        },
+        timeout:
+          ROUTE_CONFIG.openRouteService.timeoutMs,
+      },
+    );
+
+  const feature = response.data.features[0];
+
+  if (!feature) {
+    throw new Error(
+      "OpenRouteService returnerede ingen rute.",
+    );
+  }
+
+  const routeCoordinates =
+    feature.geometry.coordinates.map(
+      ([longitude, latitude]) => ({
+        latitude,
+        longitude,
+      }),
+    );
+
+  const segments = createRouteSegments(
+    requestedCoordinates,
+    routeCoordinates,
+    feature.properties.segments ?? [],
+    feature.properties.way_points ?? [],
+  );
+
+  return {
+    coordinates: routeCoordinates,
+    distanceMeters:
+      feature.properties.summary.distance,
+    durationSeconds:
+      feature.properties.summary.duration,
+    segments,
+  };
+}
