@@ -40,6 +40,15 @@ export default function ActiveRouteCard({
     return null;
   }
 
+  const remainingDurationSeconds =
+    distanceToNextStopMeters !== null &&
+      currentSegment.distanceMeters > 0
+      ? currentSegment.durationSeconds *
+      (distanceToNextStopMeters /
+        currentSegment.distanceMeters)
+      : currentSegment.durationSeconds;
+
+
   const isReturnToStart =
     currentStopIndex >= waypoints.length;
 
@@ -128,7 +137,7 @@ export default function ActiveRouteCard({
 
                 <Text className="mt-1 text-lg font-bold text-slate-900">
                   {formatDurationMinutes(
-                    currentSegment.durationSeconds,
+                    remainingDurationSeconds,
                   )}
                 </Text>
               </View>
