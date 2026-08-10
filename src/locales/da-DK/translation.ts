@@ -192,7 +192,8 @@ const daDK = {
 
 "Gå ind i rundkørslen":
   "Gå ind i rundkørslen",
-
+  
+  "Gør dig klar til at gå": "Gør dig klar til at gå"
 
 
 } as const;

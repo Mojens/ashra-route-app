@@ -219,6 +219,8 @@ const enUS = {
 
   "Gå ind i rundkørslen":
     "Enter the roundabout",
+    
+  "Gør dig klar til at gå": "Get ready to walk"
 } as const;
 
 export default enUS;

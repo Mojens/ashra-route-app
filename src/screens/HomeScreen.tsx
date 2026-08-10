@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View, ImageBackground } from "react-native";
 import MapView, { Polyline, Region } from "react-native-maps";
 import * as Location from "expo-location";
 import RoutePanel from "../components/RoutePanel";
@@ -743,13 +743,33 @@ export default function HomeScreen() {
 
   if (!region) {
     return (
-      <View className="flex-1 items-center justify-center bg-slate-100">
-        <ActivityIndicator size="large" />
+      <ImageBackground
+        source={require("../assets/images/location-loading.png")}
+        style={styles.loadingBackground}
+        resizeMode="cover"
+      >
+        <View style={styles.loadingOverlay}>
+          <View className="items-center">
+            <Text className="text-3xl font-bold tracking-[6px] text-white">
+              ASHRA
+            </Text>
 
-        <Text className="mt-3 text-base text-slate-700">
-          {t("Finder din position...")}
-        </Text>
-      </View>
+            <ActivityIndicator
+              size="large"
+              color="#ffffff"
+              style={{ marginTop: 20 }}
+            />
+
+            <Text className="mt-4 text-base font-medium text-white">
+              {t("Finder din position...")}
+            </Text>
+
+            <Text className="mt-2 text-sm text-blue-100">
+              {t("Gør dig klar til at gå")}
+            </Text>
+          </View>
+        </View>
+      </ImageBackground>
     );
   }
 
@@ -957,5 +977,17 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+  },
+  loadingBackground: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+
+  loadingOverlay: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0, 20, 70, 0.12)",
   },
 });
