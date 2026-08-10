@@ -148,6 +148,22 @@ const enUS = {
 
   "Vil du genberegne ruten?":
     "Would you like to recalculate the route?",
+
+  "Café": "Cafe",
+
+  "Bageri": "Bakery",
+
+  "Apotek": "Pharmacy",
+
+  "Legeplads": "Playground",
+
+  "Bibliotek": "Library",
+
+  "Biograf": "Cinema",
+
+  "Shoppingcenter": "Shopping centre",
+
+  "Udsigtspunkt": "Viewpoint",
 } as const;
 
 export default enUS;

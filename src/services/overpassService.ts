@@ -1,5 +1,9 @@
 import axios, { AxiosError } from "axios";
-import { ROUTE_CONFIG } from "../constants";
+
+import {
+  ROUTE_CATEGORIES,
+  ROUTE_CONFIG,
+} from "../constants";
 import {
   PointOfInterest,
   RouteCategory,
@@ -13,21 +17,37 @@ const OVERPASS_ENDPOINTS =
 interface OverpassElement {
   id: number;
   type: "node" | "way" | "relation";
+
   lat?: number;
   lon?: number;
+
   center?: {
     lat: number;
     lon: number;
   };
-  tags?: {
-    name?: string;
-    "name:da"?: string;
-    official_name?: string;
-    short_name?: string;
-    alt_name?: string;
-    operator?: string;
-    brand?: string;
-  };
+
+  tags?: Record<string, string>;
+}
+
+interface OverpassResponse {
+  elements: OverpassElement[];
+}
+
+function getCategoryConfig(
+  category: RouteCategory,
+) {
+  const categoryConfig =
+    ROUTE_CATEGORIES.find(
+      (item) => item.id === category,
+    );
+
+  if (!categoryConfig) {
+    throw new Error(
+      `Ukendt kategori: ${category}`,
+    );
+  }
+
+  return categoryConfig;
 }
 
 function getPlaceName(
@@ -52,16 +72,6 @@ function getPlaceName(
   return getFallbackName(category);
 }
 
-interface OverpassResponse {
-  elements: OverpassElement[];
-}
-
-const CATEGORY_QUERIES: Record<RouteCategory, string> = {
-  park: '["leisure"="park"]',
-  beach: '["natural"="beach"]',
-  supermarket: '["shop"="supermarket"]',
-};
-
 async function executeOverpassQuery(
   query: string,
 ): Promise<OverpassResponse> {
@@ -69,17 +79,18 @@ async function executeOverpassQuery(
 
   for (const endpoint of OVERPASS_ENDPOINTS) {
     try {
-      const response = await axios.post<OverpassResponse>(
-        endpoint,
-        query,
-        {
-          headers: {
-            "Content-Type": "text/plain",
+      const response =
+        await axios.post<OverpassResponse>(
+          endpoint,
+          query,
+          {
+            headers: {
+              "Content-Type": "text/plain",
+            },
+            timeout:
+              ROUTE_CONFIG.overpass.timeoutMs,
           },
-          timeout:
-            ROUTE_CONFIG.overpass.timeoutMs,
-        },
-      );
+        );
 
       return response.data;
     } catch (error) {
@@ -121,44 +132,73 @@ export async function findNearbyPlaces(
   category: RouteCategory,
   radiusMeters = 3000,
 ): Promise<PointOfInterest[]> {
-  const categoryQuery = CATEGORY_QUERIES[category];
+  const categoryConfig =
+    getCategoryConfig(category);
+
+  const {
+    key,
+    value,
+  } = categoryConfig.osm;
 
   const query = `
-  [out:json][timeout:${ROUTE_CONFIG.overpass.queryTimeoutSeconds}];
-  (
-    node${categoryQuery}(around:${radiusMeters},${start.latitude},${start.longitude});
-    way${categoryQuery}(around:${radiusMeters},${start.latitude},${start.longitude});
-    relation${categoryQuery}(around:${radiusMeters},${start.latitude},${start.longitude});
-  );
-  out center tags;
-`;
+    [out:json][timeout:${ROUTE_CONFIG.overpass.queryTimeoutSeconds}];
 
-  const data = await executeOverpassQuery(query);
+    (
+      node["${key}"="${value}"]
+        (around:${radiusMeters},${start.latitude},${start.longitude});
+
+      way["${key}"="${value}"]
+        (around:${radiusMeters},${start.latitude},${start.longitude});
+
+      relation["${key}"="${value}"]
+        (around:${radiusMeters},${start.latitude},${start.longitude});
+    );
+
+    out center tags;
+  `;
+
+  const data =
+    await executeOverpassQuery(query);
 
   return data.elements
-    .map((element): PointOfInterest | null => {
-      const latitude = element.lat ?? element.center?.lat;
-      const longitude = element.lon ?? element.center?.lon;
+    .map(
+      (
+        element,
+      ): PointOfInterest | null => {
+        const latitude =
+          element.lat ??
+          element.center?.lat;
 
-      if (
-        latitude === undefined ||
-        longitude === undefined
-      ) {
-        return null;
-      }
+        const longitude =
+          element.lon ??
+          element.center?.lon;
 
-      return {
-        id: element.id,
-        name: getPlaceName(element, category),
-        category,
-        coordinate: {
-          latitude,
-          longitude,
-        },
-      };
-    })
+        if (
+          latitude === undefined ||
+          longitude === undefined
+        ) {
+          return null;
+        }
+
+        return {
+          id: element.id,
+          name: getPlaceName(
+            element,
+            category,
+          ),
+          category,
+
+          coordinate: {
+            latitude,
+            longitude,
+          },
+        };
+      },
+    )
     .filter(
-      (place): place is PointOfInterest =>
+      (
+        place,
+      ): place is PointOfInterest =>
         place !== null,
     );
 }
@@ -168,44 +208,116 @@ export async function findNearestPlace(
   category: RouteCategory,
   radiusMeters = 3000,
 ): Promise<PointOfInterest | null> {
-  const places = await findNearbyPlaces(
-    start,
-    category,
-    radiusMeters,
-  );
+  const places =
+    await findNearbyPlaces(
+      start,
+      category,
+      radiusMeters,
+    );
 
   if (places.length === 0) {
     return null;
   }
 
-  return places.reduce((nearest, current) => {
-    const nearestDistance = calculateDistanceMeters(
-      start,
-      nearest.coordinate,
+  return places.reduce(
+    (nearest, current) => {
+      const nearestDistance =
+        calculateDistanceMeters(
+          start,
+          nearest.coordinate,
+        );
+
+      const currentDistance =
+        calculateDistanceMeters(
+          start,
+          current.coordinate,
+        );
+
+      return currentDistance <
+        nearestDistance
+        ? current
+        : nearest;
+    },
+  );
+}
+
+export async function findAvailableCategories(
+  start: RouteCoordinate,
+  radiusMeters = 3000,
+): Promise<RouteCategory[]> {
+  const categoryQueries =
+    ROUTE_CATEGORIES.map(
+      ({ osm }) => `
+        node["${osm.key}"="${osm.value}"]
+          (around:${radiusMeters},${start.latitude},${start.longitude});
+
+        way["${osm.key}"="${osm.value}"]
+          (around:${radiusMeters},${start.latitude},${start.longitude});
+
+        relation["${osm.key}"="${osm.value}"]
+          (around:${radiusMeters},${start.latitude},${start.longitude});
+      `,
+    ).join("\n");
+
+  const query = `
+    [out:json][timeout:${ROUTE_CONFIG.overpass.queryTimeoutSeconds}];
+
+    (
+      ${categoryQueries}
     );
 
-    const currentDistance = calculateDistanceMeters(
-      start,
-      current.coordinate,
+    out center tags;
+  `;
+
+  const data =
+    await executeOverpassQuery(query);
+
+  const availableCategories =
+    new Set<RouteCategory>();
+
+  for (const element of data.elements) {
+    const category =
+      findCategoryFromTags(
+        element.tags,
+      );
+
+    if (category) {
+      availableCategories.add(
+        category,
+      );
+    }
+  }
+
+  return ROUTE_CATEGORIES
+    .map(({ id }) => id)
+    .filter((category) =>
+      availableCategories.has(
+        category,
+      ),
+    );
+}
+
+function findCategoryFromTags(
+  tags?: Record<string, string>,
+): RouteCategory | null {
+  if (!tags) {
+    return null;
+  }
+
+  const category =
+    ROUTE_CATEGORIES.find(
+      ({ osm }) =>
+        tags[osm.key] === osm.value,
     );
 
-    return currentDistance < nearestDistance
-      ? current
-      : nearest;
-  });
+  return category?.id ?? null;
 }
 
 function getFallbackName(
   category: RouteCategory,
 ): string {
-  switch (category) {
-    case "park":
-      return "Park";
+  const categoryConfig =
+    getCategoryConfig(category);
 
-    case "beach":
-      return "Strand";
-
-    case "supermarket":
-      return "Supermarked";
-  }
+  return categoryConfig.label;
 }

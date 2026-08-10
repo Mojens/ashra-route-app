@@ -1,8 +1,19 @@
 export type RouteCategory =
   | "park"
   | "beach"
-  | "supermarket";
-
+  | "supermarket"
+  | "cafe"
+  | "restaurant"
+  | "bakery"
+  | "pharmacy"
+  | "playground"
+  | "museum"
+  | "library"
+  | "cinema"
+  | "fitness"
+  | "shoppingMall"
+  | "viewpoint";
+  
 export interface RouteCategoryOption {
   id: RouteCategory;
   label: string;
