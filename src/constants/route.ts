@@ -36,5 +36,6 @@ export const ROUTE_CONFIG = {
   navigation: {
     distanceIntervalMeters: 10,
     timeIntervalMs: 3000,
+    waypointReachedDistanceMeters: 30,
   },
 } as const;

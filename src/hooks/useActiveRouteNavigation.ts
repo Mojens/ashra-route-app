@@ -1,23 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as Location from "expo-location";
 import { ROUTE_CONFIG } from "../constants";
-import {
-  RouteCoordinate,
-  RouteSegment,
-} from "../types/route";
+import { RouteCoordinate, RouteSegment } from "../types/route";
 import { calculateDistanceMeters } from "../utils/distance";
 
 interface UseActiveRouteNavigationOptions {
   isActive: boolean;
   currentStopIndex: number;
   segments: RouteSegment[];
+  onDestinationReached: () => void;
 }
 
 export function useActiveRouteNavigation({
   isActive,
   currentStopIndex,
   segments,
+  onDestinationReached,
 }: UseActiveRouteNavigationOptions) {
+  const hasReachedCurrentDestinationRef =
+    useRef(false);
+
   const [currentPosition, setCurrentPosition] =
     useState<RouteCoordinate | null>(null);
 
@@ -28,6 +30,10 @@ export function useActiveRouteNavigation({
 
   const [locationError, setLocationError] =
     useState<string | null>(null);
+
+  useEffect(() => {
+    hasReachedCurrentDestinationRef.current = false;
+  }, [currentStopIndex]);
 
   useEffect(() => {
     if (!isActive) {
@@ -52,6 +58,8 @@ export function useActiveRouteNavigation({
 
     const startWatching = async () => {
       try {
+        setLocationError(null);
+
         const permission =
           await Location.getForegroundPermissionsAsync();
 
@@ -96,6 +104,21 @@ export function useActiveRouteNavigation({
                 );
 
               setDistanceToNextStopMeters(distance);
+
+              const hasReachedDestination =
+                distance <=
+                ROUTE_CONFIG.navigation
+                  .waypointReachedDistanceMeters;
+
+              if (
+                hasReachedDestination &&
+                !hasReachedCurrentDestinationRef.current
+              ) {
+                hasReachedCurrentDestinationRef.current =
+                  true;
+
+                onDestinationReached();
+              }
             },
           );
       } catch (error) {
@@ -124,6 +147,7 @@ export function useActiveRouteNavigation({
     isActive,
     currentStopIndex,
     segments,
+    onDestinationReached,
   ]);
 
   return {
