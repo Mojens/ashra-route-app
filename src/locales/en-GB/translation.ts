@@ -110,6 +110,15 @@ const enGB = {
 
   "Generér en rute, før du starter turen.":
     "Generate a route before starting your walk.",
+
+  "Indstillinger": "Settings",
+  "Sprog": "Language",
+
+  "Tilpas appen til dine præferencer.":
+    "Customize the app to your preferences.",
+
+    "Rute": "Route",
+
 } as const;
 
 export default enGB;

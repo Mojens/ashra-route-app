@@ -1,11 +1,25 @@
+// Mangler noget her
 import * as Localization from "expo-localization";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-
+import { AppLanguage, LANGUAGE_STORAGE_KEY } from "../constants";
 import daDK from "../locales/da-DK/translation";
 import enGB from "../locales/en-GB/translation";
 import enUS from "../locales/en-US/translation";
 
+const SUPPORTED_LANGUAGES: AppLanguage[] = [
+  "da-DK",
+  "en-GB",
+  "en-US",
+];
+
+function isSupportedLanguage(
+  language: string,
+): language is AppLanguage {
+  return SUPPORTED_LANGUAGES.includes(
+    language as AppLanguage,
+  );
+}
 const SUPPORTED_LANGUAGE_TAGS = {
   "da-DK": "da-DK",
   "en-GB": "en-GB",
@@ -43,7 +57,7 @@ function getDeviceLanguage(): SupportedLanguage {
 
   const exactLanguage =
     SUPPORTED_LANGUAGE_TAGS[
-      locale.languageTag as keyof typeof SUPPORTED_LANGUAGE_TAGS
+    locale.languageTag as keyof typeof SUPPORTED_LANGUAGE_TAGS
     ];
 
   if (exactLanguage) {
@@ -52,7 +66,7 @@ function getDeviceLanguage(): SupportedLanguage {
 
   const fallbackLanguage =
     LANGUAGE_FALLBACKS[
-      locale.languageCode as keyof typeof LANGUAGE_FALLBACKS
+    locale.languageCode as keyof typeof LANGUAGE_FALLBACKS
     ];
 
   return fallbackLanguage ?? DEFAULT_LANGUAGE;

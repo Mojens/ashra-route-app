@@ -82,7 +82,7 @@ export default function CategorySelector({
                     : "font-medium text-slate-700",
                 ].join(" ")}
               >
-                {category.label}
+                {t(category.label)}
               </Text>
 
               {isSelected &&

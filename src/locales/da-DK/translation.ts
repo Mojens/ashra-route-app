@@ -110,6 +110,14 @@ const daDK = {
 
   "Generér en rute, før du starter turen.":
     "Generér en rute, før du starter turen.",
+
+  "Indstillinger": "Indstillinger",
+  "Sprog": "Sprog",
+
+  "Tilpas appen til dine præferencer.":
+    "Tilpas appen til dine præferencer.",
+
+  "Rute": "Rute",
 } as const;
 
 export default daDK;
