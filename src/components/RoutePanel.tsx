@@ -14,12 +14,19 @@ import {
 interface RoutePanelProps {
   selectedSteps: number;
   selectedCategories: RouteCategory[];
+
+  availableCategories: RouteCategory[];
+  isLoadingCategories?: boolean;
+
   isCollapsed: boolean;
   isGeneratingRoute?: boolean;
   routeDistance?: number | null;
   routeDuration?: number | null;
+
   onSelectSteps: (steps: number) => void;
-  onToggleCategory: (category: RouteCategory) => void;
+  onToggleCategory: (
+    category: RouteCategory,
+  ) => void;
   onMoveCategory: (
     category: RouteCategory,
     direction: "left" | "right",
@@ -31,6 +38,8 @@ interface RoutePanelProps {
 export default function RoutePanel({
   selectedSteps,
   selectedCategories,
+  availableCategories,
+  isLoadingCategories = false,
   isCollapsed,
   isGeneratingRoute = false,
   routeDistance = null,
@@ -81,6 +90,8 @@ export default function RoutePanel({
           <ExpandedContent
             selectedSteps={selectedSteps}
             selectedCategories={selectedCategories}
+            availableCategories={availableCategories}
+            isLoadingCategories={isLoadingCategories}
             isGeneratingRoute={isGeneratingRoute}
             routeDistance={routeDistance}
             routeDuration={routeDuration}
@@ -104,7 +115,7 @@ function CollapsedSummary({
   selectedSteps,
   selectedCategories,
 }: CollapsedSummaryProps) {
-   const { t } = useTranslation();
+  const { t } = useTranslation();
   return (
     <View className="mt-3 flex-row items-center justify-between">
       <View>
@@ -133,11 +144,15 @@ function CollapsedSummary({
 interface ExpandedContentProps {
   selectedSteps: number;
   selectedCategories: RouteCategory[];
+  availableCategories: RouteCategory[];
+  isLoadingCategories: boolean;
   isGeneratingRoute: boolean;
   routeDistance: number | null;
   routeDuration: number | null;
   onSelectSteps: (steps: number) => void;
-  onToggleCategory: (category: RouteCategory) => void;
+  onToggleCategory: (
+    category: RouteCategory,
+  ) => void;
   onMoveCategory: (
     category: RouteCategory,
     direction: "left" | "right",
@@ -151,12 +166,14 @@ function ExpandedContent({
   isGeneratingRoute,
   routeDistance,
   routeDuration,
+  availableCategories,
+  isLoadingCategories,
   onSelectSteps,
   onToggleCategory,
   onMoveCategory,
   onGenerateRoute,
 }: ExpandedContentProps) {
-   const { t } = useTranslation();
+  const { t } = useTranslation();
   return (
     <>
       <View className="mt-4">
@@ -172,6 +189,8 @@ function ExpandedContent({
 
       <CategorySelector
         selectedCategories={selectedCategories}
+        availableCategories={availableCategories}
+        isLoading={isLoadingCategories}
         onToggleCategory={onToggleCategory}
         onMoveCategory={onMoveCategory}
       />
@@ -209,7 +228,7 @@ function EstimatedRouteSummary({
 }: {
   selectedSteps: number;
 }) {
-   const { t } = useTranslation();
+  const { t } = useTranslation();
   return (
     <View className="mt-4 flex-row justify-between rounded-2xl bg-blue-50 p-4">
       <View>
@@ -244,7 +263,7 @@ function GeneratedRouteSummary({
   distanceMeters,
   durationSeconds,
 }: GeneratedRouteSummaryProps) {
-   const { t } = useTranslation();
+  const { t } = useTranslation();
   return (
     <View className="mt-4 flex-row justify-between rounded-2xl bg-green-50 p-4">
       <View>

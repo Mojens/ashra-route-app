@@ -150,6 +150,12 @@ const daDK = {
 
   "Vil du genberegne ruten?":
     "Vil du genberegne ruten?",
+
+  "Finder steder i nærheden...":
+    "Finder steder i nærheden...",
+
+  "Der blev ikke fundet nogen steder i nærheden.":
+    "Der blev ikke fundet nogen steder i nærheden.",
 } as const;
 
 export default daDK;

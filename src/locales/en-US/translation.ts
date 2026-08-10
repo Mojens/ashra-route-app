@@ -164,6 +164,12 @@ const enUS = {
   "Shoppingcenter": "Shopping centre",
 
   "Udsigtspunkt": "Viewpoint",
+
+  "Finder steder i nærheden...":
+    "Finding nearby places...",
+
+  "Der blev ikke fundet nogen steder i nærheden.":
+    "No nearby places were found.",
 } as const;
 
 export default enUS;

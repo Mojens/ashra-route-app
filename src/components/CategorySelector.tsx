@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Pressable,
   ScrollView,
   Text,
@@ -13,7 +14,11 @@ type MoveDirection = "left" | "right";
 
 interface CategorySelectorProps {
   selectedCategories: RouteCategory[];
-  onToggleCategory: (category: RouteCategory) => void;
+  availableCategories: RouteCategory[];
+  isLoading?: boolean;
+  onToggleCategory: (
+    category: RouteCategory,
+  ) => void;
   onMoveCategory: (
     category: RouteCategory,
     direction: MoveDirection,
@@ -22,103 +27,144 @@ interface CategorySelectorProps {
 
 export default function CategorySelector({
   selectedCategories,
+  availableCategories,
+  isLoading = false,
   onToggleCategory,
   onMoveCategory,
 }: CategorySelectorProps) {
   const { t } = useTranslation();
+
+  const visibleCategories =
+    ROUTE_CATEGORIES.filter(
+      (category) =>
+        availableCategories.includes(
+          category.id,
+        ),
+    );
+
   return (
     <View>
       <Text className="mb-3 text-base font-semibold text-slate-900">
         {t("Hvad skal ruten gå forbi?")}
       </Text>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerClassName="gap-2"
-      >
-        {ROUTE_CATEGORIES.map((category) => {
-          const selectedIndex =
-            selectedCategories.indexOf(category.id);
+      {isLoading && (
+        <View className="mb-3 flex-row items-center">
+          <ActivityIndicator size="small" />
 
-          const isSelected = selectedIndex !== -1;
-          const isFirst = selectedIndex === 0;
-          const isLast =
-            selectedIndex ===
-            selectedCategories.length - 1;
+          <Text className="ml-2 text-sm text-slate-500">
+            {t("Finder steder i nærheden...")}
+          </Text>
+        </View>
+      )}
 
-          return (
-            <Pressable
-              key={category.id}
-              onPress={() =>
-                onToggleCategory(category.id)
-              }
-              className={[
-                "min-w-[120px] rounded-2xl border p-3",
-                isSelected
-                  ? "border-blue-600 bg-blue-50"
-                  : "border-slate-200 bg-white",
-              ].join(" ")}
-            >
-              <View className="flex-row items-start justify-between">
-                <Text className="text-2xl">
-                  {category.icon}
-                </Text>
+      {!isLoading &&
+        visibleCategories.length === 0 && (
+          <View className="rounded-2xl bg-slate-50 p-4">
+            <Text className="text-sm text-slate-500">
+              {t(
+                "Der blev ikke fundet nogen steder i nærheden.",
+              )}
+            </Text>
+          </View>
+        )}
 
-                {isSelected && (
-                  <View className="rounded-full bg-blue-600 px-2 py-1">
-                    <Text className="text-[10px] font-bold text-white">
-                      {t("STOP")} {selectedIndex + 1}
-                    </Text>
-                  </View>
-                )}
-              </View>
+      {visibleCategories.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerClassName="gap-2"
+        >
+          {visibleCategories.map((category) => {
+            const selectedIndex =
+              selectedCategories.indexOf(category.id);
 
-              <Text
+            const isSelected =
+              selectedIndex !== -1;
+
+            const isFirst =
+              selectedIndex === 0;
+
+            const isLast =
+              selectedIndex ===
+              selectedCategories.length - 1;
+
+            return (
+              <Pressable
+                key={category.id}
+                onPress={() =>
+                  onToggleCategory(category.id)
+                }
                 className={[
-                  "mt-2 text-sm",
+                  "min-w-[120px] rounded-2xl border p-3",
                   isSelected
-                    ? "font-semibold text-blue-700"
-                    : "font-medium text-slate-700",
+                    ? "border-blue-600 bg-blue-50"
+                    : "border-slate-200 bg-white",
                 ].join(" ")}
               >
-                {t(category.label)}
-              </Text>
+                <View className="flex-row items-start justify-between">
+                  <Text className="text-2xl">
+                    {category.icon}
+                  </Text>
 
-              {isSelected &&
-                selectedCategories.length > 1 && (
-                  <View className="mt-3 flex-row gap-2">
-                    <MoveButton
-                      symbol="←"
-                      disabled={isFirst}
-                      onPress={() =>
-                        onMoveCategory(
-                          category.id,
-                          "left",
-                        )
-                      }
-                    />
+                  {isSelected && (
+                    <View className="rounded-full bg-blue-600 px-2 py-1">
+                      <Text className="text-[10px] font-bold text-white">
+                        {t("STOP")}{" "}
+                        {selectedIndex + 1}
+                      </Text>
+                    </View>
+                  )}
+                </View>
 
-                    <MoveButton
-                      symbol="→"
-                      disabled={isLast}
-                      onPress={() =>
-                        onMoveCategory(
-                          category.id,
-                          "right",
-                        )
-                      }
-                    />
-                  </View>
-                )}
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+                <Text
+                  className={[
+                    "mt-2 text-sm",
+                    isSelected
+                      ? "font-semibold text-blue-700"
+                      : "font-medium text-slate-700",
+                  ].join(" ")}
+                >
+                  {t(category.label)}
+                </Text>
+
+                {isSelected &&
+                  selectedCategories.length > 1 && (
+                    <View className="mt-3 flex-row gap-2">
+                      <MoveButton
+                        symbol="←"
+                        disabled={isFirst}
+                        onPress={() =>
+                          onMoveCategory(
+                            category.id,
+                            "left",
+                          )
+                        }
+                      />
+
+                      <MoveButton
+                        symbol="→"
+                        disabled={isLast}
+                        onPress={() =>
+                          onMoveCategory(
+                            category.id,
+                            "right",
+                          )
+                        }
+                      />
+                    </View>
+                  )}
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      )}
 
       {selectedCategories.length > 1 && (
         <Text className="mt-2 text-xs text-slate-500">
-          {t("Brug pilene til at ændre rækkefølgen på stoppene.")}
+          {t(
+            "Brug pilene til at ændre rækkefølgen på stoppene.",
+          )}
         </Text>
       )}
     </View>

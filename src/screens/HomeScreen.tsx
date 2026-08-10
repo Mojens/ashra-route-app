@@ -4,7 +4,7 @@ import MapView, { Polyline, Region } from "react-native-maps";
 import * as Location from "expo-location";
 import RoutePanel from "../components/RoutePanel";
 import WaypointMarker from "../components/WaypointMarker";
-import { COLORS, MAP_CONFIG, ROUTE_CONFIG, STEP_CONFIG } from "../constants";
+import { COLORS, MAP_CONFIG, ROUTE_CATEGORIES, ROUTE_CONFIG, STEP_CONFIG } from "../constants";
 import { useRoutePlanner } from "../hooks/useRoutePlanner";
 import { PointOfInterest, RouteCategory, RouteCoordinate, RouteSegment } from "../types/route";
 import { getSegmentColor, getSegmentStrokeColor } from "../utils/routeColors";
@@ -17,11 +17,16 @@ import { useActiveRouteNavigation } from "../hooks/useActiveRouteNavigation";
 import * as Haptics from "expo-haptics";
 import StopReachedBanner from "../components/StopReachedBanner";
 import { generateRouteFromPosition } from "../services/routeService";
+import { findAvailableCategories } from "../services/overpassService";
 
 export default function HomeScreen() {
   // DEV STATES
   const [isDevOffRoute, setIsDevOffRoute] = useState(false);
   // DEV STATES
+
+  // Catergory selection state
+  const [availableCategories, setAvailableCategories] = useState<RouteCategory[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
 
   //route confirmation
   const [isOffRouteConfirmed, setIsOffRouteConfirmed] = useState(false);
@@ -61,9 +66,8 @@ export default function HomeScreen() {
   const [selectedSteps, setSelectedSteps] = useState<number>(
     STEP_CONFIG.defaultSteps,
   );
-  const [selectedCategories, setSelectedCategories] = useState<
-    RouteCategory[]
-  >(["park"]);
+ const [selectedCategories, setSelectedCategories] =
+  useState<RouteCategory[]>([]);
 
   const [isPanelCollapsed, setIsPanelCollapsed] =
     useState(false);
@@ -268,6 +272,56 @@ export default function HomeScreen() {
       MAP_CONFIG.navigation.animationDurationMs,
     );
   };
+  const loadAvailableRouteCategories =
+    async (
+      origin: RouteCoordinate,
+    ): Promise<void> => {
+      try {
+        setIsLoadingCategories(true);
+
+        const categories =
+          await findAvailableCategories(
+            origin,
+            5000,
+          );
+
+        setAvailableCategories(categories);
+
+        /*
+         * Hvis en tidligere valgt kategori ikke længere
+         * findes i området, fjerner vi den.
+         */
+        setSelectedCategories(
+          (currentCategories) =>
+            currentCategories.filter(
+              (category) =>
+                categories.includes(category),
+            ),
+        );
+
+        console.log(
+          "Tilgængelige kategorier:",
+          categories,
+        );
+      } catch (error) {
+        console.error(
+          "Kunne ikke hente kategorier:",
+          error,
+        );
+
+        /*
+         * Hvis Overpass fejler, viser vi alle kategorier
+         * som fallback, så appen stadig kan bruges.
+         */
+        setAvailableCategories(
+          ROUTE_CATEGORIES.map(
+            ({ id }) => id,
+          ),
+        );
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
 
   const handleDestinationReached =
     useCallback((): void => {
@@ -471,14 +525,23 @@ export default function HomeScreen() {
           accuracy: Location.Accuracy.High,
         });
 
-      setRegion({
+      const currentCoordinate: RouteCoordinate = {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
+      };
+
+      setRegion({
+        ...currentCoordinate,
         latitudeDelta:
           MAP_CONFIG.initialRegion.latitudeDelta,
         longitudeDelta:
           MAP_CONFIG.initialRegion.longitudeDelta,
       });
+
+      void loadAvailableRouteCategories(
+        currentCoordinate,
+      );
+
     } catch (error) {
       console.error(
         t("Kunne ikke hente lokationen:"),
@@ -809,6 +872,8 @@ export default function HomeScreen() {
         <RoutePanel
           selectedSteps={selectedSteps}
           selectedCategories={selectedCategories}
+          availableCategories={availableCategories}
+          isLoadingCategories={isLoadingCategories}
           isCollapsed={isPanelCollapsed}
           isGeneratingRoute={isBusy}
           routeDistance={routeDistance}
