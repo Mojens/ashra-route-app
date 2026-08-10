@@ -124,6 +124,16 @@ const enGB = {
   "Din position kunne ikke opdateres.":
     "Your location could not be updated.",
 
+  "Stop nået": "Stop reached",
+
+  "Du er nået frem til {{place}}.":
+    "You have arrived at {{place}}.",
+
+  "Du er nået frem til næste stop.":
+    "You have reached the next stop.",
+
+  "Fortsæt": "Continue",
+
 } as const;
 
 export default enGB;

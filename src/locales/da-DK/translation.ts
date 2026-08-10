@@ -123,6 +123,16 @@ const daDK = {
 
   "Din position kunne ikke opdateres.":
     "Din position kunne ikke opdateres.",
+
+  "Stop nået": "Stop nået",
+
+  "Du er nået frem til {{place}}.":
+    "Du er nået frem til {{place}}.",
+
+  "Du er nået frem til næste stop.":
+    "Du er nået frem til næste stop.",
+
+  "Fortsæt": "Fortsæt",
 } as const;
 
 export default daDK;

@@ -124,6 +124,52 @@ export default function HomeScreen() {
     setIsPanelCollapsed(true);
   };
 
+  const handleDestinationReached = useCallback((): void => {
+    const reachedWaypoint =
+      selectedWaypoints[currentStopIndex];
+
+    const isReturningToStart =
+      currentStopIndex >= selectedWaypoints.length;
+
+    if (isReturningToStart) {
+      Alert.alert(
+        t("Turen er færdig"),
+        t("Godt gået! Du er tilbage ved start."),
+      );
+
+      setIsRouteActive(false);
+      setCurrentStopIndex(0);
+
+      return;
+    }
+
+    Alert.alert(
+      t("Stop nået"),
+      reachedWaypoint
+        ? t("Du er nået frem til {{place}}.", {
+          place: reachedWaypoint.name,
+        })
+        : t("Du er nået frem til næste stop."),
+      [
+        {
+          text: t("Fortsæt"),
+          onPress: () => {
+            setCurrentStopIndex(
+              (current) => current + 1,
+            );
+          },
+        },
+      ],
+      {
+        cancelable: false,
+      },
+    );
+  }, [
+    currentStopIndex,
+    selectedWaypoints,
+    t,
+  ]);
+
   const handleNextStop = useCallback((): void => {
     if (
       currentStopIndex >=
@@ -169,7 +215,7 @@ export default function HomeScreen() {
     isActive: isRouteActive,
     currentStopIndex,
     segments: routeSegments,
-    onDestinationReached: handleNextStop,
+    onDestinationReached: handleDestinationReached,
   });
   useEffect(() => {
     if (!isRouteActive) {
