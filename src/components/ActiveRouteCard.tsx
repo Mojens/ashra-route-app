@@ -114,6 +114,11 @@ export default function ActiveRouteCard({
                     t,
                   )}
                 </Text>
+                {currentInstruction.roadName && (
+                  <Text className="mt-1 text-sm font-medium text-blue-100">
+                    {currentInstruction.roadName}
+                  </Text>
+                )}
               </View>
             </View>
           </View>
@@ -137,6 +142,11 @@ export default function ActiveRouteCard({
                   t,
                 )}
               </Text>
+              {nextInstruction.roadName && (
+                <Text className="mt-0.5 text-sm text-slate-500">
+                  {nextInstruction.roadName}
+                </Text>
+              )}
             </View>
           </View>
         )}

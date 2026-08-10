@@ -37,7 +37,7 @@ export type RouteCategory =
   | "castle"
   | "toilets"
   | "drinkingWater";
-  
+
 export type NavigationManeuver =
   | "left"
   | "right"
@@ -108,7 +108,9 @@ export interface NavigationInstruction {
    * Position hvor næste manøvre cirka sker.
    */
   coordinate: RouteCoordinate;
+  roadName?: string;
 }
+
 export interface RouteSegment {
   from: RouteCoordinate;
   to: RouteCoordinate;

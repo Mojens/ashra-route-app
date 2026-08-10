@@ -15,6 +15,7 @@ interface OpenRouteServiceStep {
   type: number;
   instruction: string;
   way_points: [number, number];
+  name?: string;
 }
 
 interface OpenRouteServiceSegment {
@@ -423,6 +424,9 @@ function createNavigationInstructions(
     return {
       instruction:
         step.instruction,
+
+      roadName:
+        step.name?.trim() || undefined,
 
       distanceMeters:
         step.distance,
