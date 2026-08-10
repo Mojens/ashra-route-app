@@ -156,6 +156,9 @@ const daDK = {
 
   "Der blev ikke fundet nogen steder i nærheden.":
     "Der blev ikke fundet nogen steder i nærheden.",
+
+  "valgt": "valgt",
+  "valgte": "valgte",
 } as const;
 
 export default daDK;

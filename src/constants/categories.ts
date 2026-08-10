@@ -1,9 +1,18 @@
 import { RouteCategory } from "../types/route";
 
+export type RouteCategoryGroup =
+  | "nature"
+  | "food"
+  | "experiences"
+  | "shopping"
+  | "sport"
+  | "practical";
+
 export interface RouteCategoryConfig {
   id: RouteCategory;
   label: string;
   icon: string;
+  group: RouteCategoryGroup;
 
   osm: {
     key: string;
@@ -11,11 +20,45 @@ export interface RouteCategoryConfig {
   };
 }
 
+export const ROUTE_CATEGORY_GROUPS = [
+  {
+    id: "nature",
+    label: "Natur",
+    icon: "🌿",
+  },
+  {
+    id: "food",
+    label: "Mad & drikke",
+    icon: "🍴",
+  },
+  {
+    id: "experiences",
+    label: "Oplevelser",
+    icon: "🎭",
+  },
+  {
+    id: "shopping",
+    label: "Shopping",
+    icon: "🛍️",
+  },
+  {
+    id: "sport",
+    label: "Sport & fritid",
+    icon: "⚽",
+  },
+  {
+    id: "practical",
+    label: "Praktisk",
+    icon: "📍",
+  },
+] as const;
+
 export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
   {
     id: "park",
     label: "Park",
     icon: "🌳",
+    group: "nature",
     osm: {
       key: "leisure",
       value: "park",
@@ -25,6 +68,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "beach",
     label: "Strand",
     icon: "🏖️",
+    group: "nature",
     osm: {
       key: "natural",
       value: "beach",
@@ -34,6 +78,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "supermarket",
     label: "Supermarked",
     icon: "🛒",
+    group: "shopping",
     osm: {
       key: "shop",
       value: "supermarket",
@@ -43,6 +88,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "cafe",
     label: "Café",
     icon: "☕",
+    group: "food",
     osm: {
       key: "amenity",
       value: "cafe",
@@ -52,6 +98,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "restaurant",
     label: "Restaurant",
     icon: "🍽️",
+    group: "food",
     osm: {
       key: "amenity",
       value: "restaurant",
@@ -61,6 +108,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "bakery",
     label: "Bageri",
     icon: "🥐",
+    group: "food",
     osm: {
       key: "shop",
       value: "bakery",
@@ -70,6 +118,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "pharmacy",
     label: "Apotek",
     icon: "💊",
+    group: "practical",
     osm: {
       key: "amenity",
       value: "pharmacy",
@@ -79,6 +128,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "playground",
     label: "Legeplads",
     icon: "🛝",
+    group: "nature",
     osm: {
       key: "leisure",
       value: "playground",
@@ -88,6 +138,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "museum",
     label: "Museum",
     icon: "🏛️",
+    group: "experiences",
     osm: {
       key: "tourism",
       value: "museum",
@@ -97,6 +148,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "library",
     label: "Bibliotek",
     icon: "📚",
+    group: "experiences",
     osm: {
       key: "amenity",
       value: "library",
@@ -106,6 +158,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "cinema",
     label: "Biograf",
     icon: "🎬",
+    group: "experiences",
     osm: {
       key: "amenity",
       value: "cinema",
@@ -115,6 +168,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "fitness",
     label: "Fitness",
     icon: "🏋️",
+    group: "sport",
     osm: {
       key: "leisure",
       value: "fitness_centre",
@@ -124,6 +178,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "shoppingMall",
     label: "Shoppingcenter",
     icon: "🛍️",
+    group: "shopping",
     osm: {
       key: "shop",
       value: "mall",
@@ -133,6 +188,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "viewpoint",
     label: "Udsigtspunkt",
     icon: "👀",
+    group: "experiences",
     osm: {
       key: "tourism",
       value: "viewpoint",
@@ -142,6 +198,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "fastFood",
     label: "Fastfood",
     icon: "🍔",
+    group: "food",
     osm: {
       key: "amenity",
       value: "fast_food",
@@ -151,6 +208,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "iceCream",
     label: "Is",
     icon: "🍦",
+    group: "food",
     osm: {
       key: "amenity",
       value: "ice_cream",
@@ -160,6 +218,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "bar",
     label: "Bar",
     icon: "🍸",
+    group: "food",
     osm: {
       key: "amenity",
       value: "bar",
@@ -169,6 +228,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "pub",
     label: "Pub",
     icon: "🍺",
+    group: "food",
     osm: {
       key: "amenity",
       value: "pub",
@@ -178,6 +238,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "convenience",
     label: "Kiosk",
     icon: "🏪",
+    group: "shopping",
     osm: {
       key: "shop",
       value: "convenience",
@@ -187,6 +248,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "clothes",
     label: "Tøjbutik",
     icon: "👕",
+    group: "shopping",
     osm: {
       key: "shop",
       value: "clothes",
@@ -196,6 +258,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "books",
     label: "Boghandel",
     icon: "📖",
+    group: "shopping",
     osm: {
       key: "shop",
       value: "books",
@@ -205,6 +268,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "sportsShop",
     label: "Sportsbutik",
     icon: "⚽",
+    group: "shopping",
     osm: {
       key: "shop",
       value: "sports",
@@ -214,6 +278,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "gardenCentre",
     label: "Havecenter",
     icon: "🪴",
+    group: "shopping",
     osm: {
       key: "shop",
       value: "garden_centre",
@@ -223,6 +288,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "forest",
     label: "Skov",
     icon: "🌲",
+    group: "nature",
     osm: {
       key: "landuse",
       value: "forest",
@@ -232,6 +298,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "natureReserve",
     label: "Naturreservat",
     icon: "🌿",
+    group: "nature",
     osm: {
       key: "leisure",
       value: "nature_reserve",
@@ -241,6 +308,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "picnicSite",
     label: "Picnicområde",
     icon: "🧺",
+    group: "nature",
     osm: {
       key: "tourism",
       value: "picnic_site",
@@ -250,6 +318,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "dogPark",
     label: "Hundepark",
     icon: "🐕",
+    group: "nature",
     osm: {
       key: "leisure",
       value: "dog_park",
@@ -259,6 +328,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "sportsCentre",
     label: "Sportscenter",
     icon: "🏃",
+    group: "sport",
     osm: {
       key: "leisure",
       value: "sports_centre",
@@ -268,6 +338,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "swimmingPool",
     label: "Svømmehal",
     icon: "🏊",
+    group: "sport",
     osm: {
       key: "leisure",
       value: "swimming_pool",
@@ -277,6 +348,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "stadium",
     label: "Stadion",
     icon: "🏟️",
+    group: "sport",
     osm: {
       key: "leisure",
       value: "stadium",
@@ -286,6 +358,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "attraction",
     label: "Seværdighed",
     icon: "⭐",
+    group: "experiences",
     osm: {
       key: "tourism",
       value: "attraction",
@@ -295,6 +368,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "monument",
     label: "Monument",
     icon: "🗿",
+    group: "experiences",
     osm: {
       key: "historic",
       value: "monument",
@@ -304,6 +378,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "artwork",
     label: "Kunstværk",
     icon: "🎨",
+    group: "experiences",
     osm: {
       key: "tourism",
       value: "artwork",
@@ -313,6 +388,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "gallery",
     label: "Galleri",
     icon: "🖼️",
+    group: "experiences",
     osm: {
       key: "tourism",
       value: "gallery",
@@ -322,6 +398,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "zoo",
     label: "Zoo",
     icon: "🦁",
+    group: "experiences",
     osm: {
       key: "tourism",
       value: "zoo",
@@ -331,6 +408,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "castle",
     label: "Slot",
     icon: "🏰",
+    group: "experiences",
     osm: {
       key: "historic",
       value: "castle",
@@ -340,6 +418,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "toilets",
     label: "Toilet",
     icon: "🚻",
+    group: "practical",
     osm: {
       key: "amenity",
       value: "toilets",
@@ -349,6 +428,7 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
     id: "drinkingWater",
     label: "Drikkevand",
     icon: "🚰",
+    group: "practical",
     osm: {
       key: "amenity",
       value: "drinking_water",
@@ -356,11 +436,6 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
   },
 ];
 
-/**
- * Beholdes fordi flere komponenter bruger:
- *
- * CATEGORY_LABELS[category]
- */
 export const CATEGORY_LABELS: Record<
   RouteCategory,
   string

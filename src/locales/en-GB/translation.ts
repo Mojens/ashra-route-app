@@ -173,6 +173,22 @@ const enGB = {
   "Der blev ikke fundet nogen steder i nærheden.":
     "No nearby places were found.",
 
+  "Natur": "Nature",
+
+  "Mad & drikke": "Food & drink",
+
+  "Oplevelser": "Experiences",
+
+  "Shopping": "Shopping",
+
+  "Sport & fritid": "Sport & leisure",
+
+  "Praktisk": "Practical",
+
+  "valgt": "selected",
+
+  "valgte": "selected",
+
 } as const;
 
 export default enGB;
