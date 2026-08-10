@@ -13,10 +13,10 @@ export const MAP_CONFIG = {
 
   routeStrokeWidth: 6,
 
-  navigation: {
-    latitudeDelta: 0.006,
-    longitudeDelta: 0.006,
-    animationDurationMs: 700,
-    inactiveSegmentOpacity: 0.35,
-  },
+navigation: {
+  latitudeDelta: 0.0035,
+  longitudeDelta: 0.0035,
+  animationDurationMs: 500,
+},
+
 } as const;

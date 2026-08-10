@@ -120,15 +120,19 @@ export default function HomeScreen() {
       );
     }
   };
+
+  // Test simulation function til sidst
   const simulateDestinationReached = () => {
     handleDestinationReached();
   };
+
   const handleStartRoute = (): void => {
     if (routeSegments.length === 0) {
       Alert.alert(
         t("Ingen rute"),
         t("Generér en rute, før du starter turen."),
       );
+
       return;
     }
 
@@ -136,6 +140,27 @@ export default function HomeScreen() {
     setIsRouteActive(true);
     setIsRouteOverviewExpanded(false);
     setIsPanelCollapsed(true);
+
+    const startPosition =
+      currentPosition ?? region;
+
+    if (!startPosition) {
+      return;
+    }
+
+    mapRef.current?.animateToRegion(
+      {
+        latitude: startPosition.latitude,
+        longitude: startPosition.longitude,
+
+        latitudeDelta:
+          MAP_CONFIG.navigation.latitudeDelta,
+
+        longitudeDelta:
+          MAP_CONFIG.navigation.longitudeDelta,
+      },
+      MAP_CONFIG.navigation.animationDurationMs,
+    );
   };
 
   const handleDestinationReached =
@@ -228,6 +253,7 @@ export default function HomeScreen() {
     currentPosition,
     distanceToNextStopMeters,
     locationError: navigationLocationError,
+    heading,
   } = useActiveRouteNavigation({
     isActive: isRouteActive,
     currentStopIndex,
@@ -254,7 +280,14 @@ export default function HomeScreen() {
   useEffect(() => {
     void loadCurrentLocation();
   }, []);
-
+  /*
+  // Bliver ikke brugt lige nu, men nok senere hvis det skalk roteres med retningen
+    const navigationHeading =
+      heading !== null &&
+        Number.isFinite(heading)
+        ? heading
+        : 0;
+  */
   useEffect(() => {
     if (
       !isRouteActive ||
@@ -482,8 +515,10 @@ export default function HomeScreen() {
         initialRegion={region}
         showsUserLocation
         showsMyLocationButton
+        rotateEnabled
+        pitchEnabled
       >
-        
+
         {selectedWaypoints.map((place, index) => {
           const shouldShowMarker =
             !isRouteActive ||

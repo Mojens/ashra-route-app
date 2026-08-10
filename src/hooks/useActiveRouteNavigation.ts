@@ -31,9 +31,57 @@ export function useActiveRouteNavigation({
   const [locationError, setLocationError] =
     useState<string | null>(null);
 
+  const [heading, setHeading] =
+    useState<number | null>(null);
+
   useEffect(() => {
     hasReachedCurrentDestinationRef.current = false;
   }, [currentStopIndex]);
+
+  useEffect(() => {
+    if (!isActive) {
+      setHeading(null);
+      return;
+    }
+
+    let subscription:
+      | Location.LocationSubscription
+      | null = null;
+
+    let cancelled = false;
+
+    const startWatchingHeading = async () => {
+      try {
+        subscription =
+          await Location.watchHeadingAsync(
+            (headingData) => {
+              if (cancelled) {
+                return;
+              }
+
+              const nextHeading =
+                headingData.trueHeading >= 0
+                  ? headingData.trueHeading
+                  : headingData.magHeading;
+
+              setHeading(nextHeading);
+            },
+          );
+      } catch (error) {
+        console.error(
+          "Kunne ikke hente retning:",
+          error,
+        );
+      }
+    };
+
+    void startWatchingHeading();
+
+    return () => {
+      cancelled = true;
+      subscription?.remove();
+    };
+  }, [isActive]);
 
   useEffect(() => {
     if (!isActive) {
@@ -154,5 +202,6 @@ export function useActiveRouteNavigation({
     currentPosition,
     distanceToNextStopMeters,
     locationError,
+    heading,
   };
 }
