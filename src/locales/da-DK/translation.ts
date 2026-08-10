@@ -144,6 +144,12 @@ const daDK = {
 
   "Genberegn rute": "Genberegn rute",
   "Genberegner rute...": "Genberegner rute...",
+
+  "Kontrollerer din position...":
+    "Kontrollerer din position...",
+
+  "Vil du genberegne ruten?":
+    "Vil du genberegne ruten?",
 } as const;
 
 export default daDK;

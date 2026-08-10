@@ -38,5 +38,6 @@ export const ROUTE_CONFIG = {
     timeIntervalMs: 3000,
     waypointReachedDistanceMeters: 30,
     offRouteDistanceMeters: 60,
+    offRouteConfirmationMs: 10000,
   },
 } as const;

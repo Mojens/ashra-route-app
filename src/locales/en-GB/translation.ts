@@ -145,6 +145,12 @@ const enGB = {
   "Genberegn rute": "Recalculate route",
   "Genberegner rute...": "Recalculating route...",
 
+  "Kontrollerer din position...":
+    "Checking your position...",
+
+  "Vil du genberegne ruten?":
+    "Would you like to recalculate the route?",
+
 } as const;
 
 export default enGB;

@@ -4,7 +4,7 @@ import MapView, { Polyline, Region } from "react-native-maps";
 import * as Location from "expo-location";
 import RoutePanel from "../components/RoutePanel";
 import WaypointMarker from "../components/WaypointMarker";
-import { COLORS, MAP_CONFIG, STEP_CONFIG } from "../constants";
+import { COLORS, MAP_CONFIG, ROUTE_CONFIG, STEP_CONFIG } from "../constants";
 import { useRoutePlanner } from "../hooks/useRoutePlanner";
 import { PointOfInterest, RouteCategory, RouteCoordinate, RouteSegment } from "../types/route";
 import { getSegmentColor, getSegmentStrokeColor } from "../utils/routeColors";
@@ -20,9 +20,11 @@ import { generateRouteFromPosition } from "../services/routeService";
 
 export default function HomeScreen() {
   // DEV STATES
-  const [isDevOffRoute, setIsDevOffRoute] =
-    useState(false);
-  //
+  const [isDevOffRoute, setIsDevOffRoute] = useState(false);
+  // DEV STATES
+
+  //route confirmation
+  const [isOffRouteConfirmed, setIsOffRouteConfirmed] = useState(false);
 
   // Reached banner state
   const [isStopReachedVisible, setIsStopReachedVisible] =
@@ -197,10 +199,11 @@ export default function HomeScreen() {
        * nuværende position.
        */
       setCurrentStopIndex(0);
+      setIsOffRouteConfirmed(false);
       if (__DEV__) {
         setIsDevOffRoute(false);
       }
-      
+
       if (route.coordinates.length > 0) {
         mapRef.current?.fitToCoordinates(
           [
@@ -368,7 +371,8 @@ export default function HomeScreen() {
   });
 
   // DEV TEST
-  const shouldShowOffRoute =
+
+  const effectiveIsOffRoute =
     isOffRoute || (__DEV__ && isDevOffRoute);
   // DEV TEST
 
@@ -426,6 +430,28 @@ export default function HomeScreen() {
     isStopReachedVisible,
   ]);
 
+  useEffect(() => {
+    if (
+      !isRouteActive ||
+      !effectiveIsOffRoute ||
+      isRerouting
+    ) {
+      setIsOffRouteConfirmed(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setIsOffRouteConfirmed(true);
+    }, ROUTE_CONFIG.navigation.offRouteConfirmationMs);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [
+    effectiveIsOffRoute,
+    isRouteActive,
+    isRerouting,
+  ]);
   const loadCurrentLocation = async (): Promise<void> => {
     try {
       setErrorMessage(null);
@@ -761,7 +787,8 @@ export default function HomeScreen() {
           distanceToNextStopMeters
         }
         locationError={navigationLocationError}
-        isOffRoute={shouldShowOffRoute} //isOffRoute={isOffRoute} dette var original
+        isOffRoute={effectiveIsOffRoute} //isOffRoute={isOffRoute} dette var original
+        isOffRouteConfirmed={isOffRouteConfirmed}
         isRerouting={isRerouting}
         onReroute={handleReroute}
         onNextStop={handleNextStop}

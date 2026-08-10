@@ -15,6 +15,7 @@ interface ActiveRouteCardProps {
   locationError?: string | null;
   isOffRoute?: boolean;
   isRerouting?: boolean;
+  isOffRouteConfirmed?: boolean;
   onReroute?: () => void;
   onNextStop: () => void;
   onStopRoute: () => void;
@@ -29,6 +30,7 @@ export default function ActiveRouteCard({
   locationError = null,
   isOffRoute = false,
   isRerouting = false,
+  isOffRouteConfirmed = false,
   onReroute,
   onNextStop,
   onStopRoute,
@@ -160,10 +162,12 @@ export default function ActiveRouteCard({
               </Text>
 
               <Text className="mt-1 text-sm text-orange-600">
-                {t("Gå tilbage mod den markerede rute.")}
+                {isOffRouteConfirmed
+                  ? t("Vil du genberegne ruten?")
+                  : t("Kontrollerer din position...")}
               </Text>
 
-              {onReroute && (
+              {isOffRouteConfirmed && onReroute && (
                 <Pressable
                   onPress={onReroute}
                   disabled={isRerouting}
