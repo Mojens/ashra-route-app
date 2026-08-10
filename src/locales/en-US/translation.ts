@@ -131,6 +131,8 @@ const enUS = {
     "You have reached the next stop.",
 
   "Fortsæt": "Continue",
+
+  "Færdig": "Done",
 } as const;
 
 export default enUS;

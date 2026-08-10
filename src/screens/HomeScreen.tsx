@@ -14,8 +14,20 @@ import RouteSuggestionsModal from "../components/RouteSuggestionsModal";
 import { GeneratedRoutePlan } from "../services/routePlanner";
 import { useTranslation } from "react-i18next";
 import { useActiveRouteNavigation } from "../hooks/useActiveRouteNavigation";
+import * as Haptics from "expo-haptics";
+import StopReachedBanner from "../components/StopReachedBanner";
 
 export default function HomeScreen() {
+  // Reached banner state
+  const [isStopReachedVisible, setIsStopReachedVisible] =
+    useState(false);
+
+  const [reachedPlaceName, setReachedPlaceName] =
+    useState<string | null>(null);
+
+  const [isRouteCompleted, setIsRouteCompleted] =
+    useState(false);
+
   // i18n
   const { t } = useTranslation();
   // RouteOverviewCard state
@@ -124,51 +136,54 @@ export default function HomeScreen() {
     setIsPanelCollapsed(true);
   };
 
-  const handleDestinationReached = useCallback((): void => {
-    const reachedWaypoint =
-      selectedWaypoints[currentStopIndex];
+  const handleDestinationReached =
+    useCallback((): void => {
+      const isReturningToStart =
+        currentStopIndex >= selectedWaypoints.length;
 
-    const isReturningToStart =
-      currentStopIndex >= selectedWaypoints.length;
-
-    if (isReturningToStart) {
-      Alert.alert(
-        t("Turen er færdig"),
-        t("Godt gået! Du er tilbage ved start."),
+      void Haptics.notificationAsync(
+        Haptics.NotificationFeedbackType.Success,
       );
 
-      setIsRouteActive(false);
-      setCurrentStopIndex(0);
+      if (isReturningToStart) {
+        setReachedPlaceName(null);
+        setIsRouteCompleted(true);
+        setIsStopReachedVisible(true);
 
-      return;
-    }
+        return;
+      }
 
-    Alert.alert(
-      t("Stop nået"),
-      reachedWaypoint
-        ? t("Du er nået frem til {{place}}.", {
-          place: reachedWaypoint.name,
-        })
-        : t("Du er nået frem til næste stop."),
-      [
-        {
-          text: t("Fortsæt"),
-          onPress: () => {
-            setCurrentStopIndex(
-              (current) => current + 1,
-            );
-          },
-        },
-      ],
-      {
-        cancelable: false,
-      },
-    );
-  }, [
-    currentStopIndex,
-    selectedWaypoints,
-    t,
-  ]);
+      const reachedWaypoint =
+        selectedWaypoints[currentStopIndex];
+
+      setReachedPlaceName(
+        reachedWaypoint?.name ?? null,
+      );
+
+      setIsRouteCompleted(false);
+      setIsStopReachedVisible(true);
+    }, [
+      currentStopIndex,
+      selectedWaypoints,
+    ]);
+
+  const handleContinueAfterReached =
+    useCallback((): void => {
+      setIsStopReachedVisible(false);
+
+      if (isRouteCompleted) {
+        setIsRouteActive(false);
+        setCurrentStopIndex(0);
+        setReachedPlaceName(null);
+        setIsRouteCompleted(false);
+
+        return;
+      }
+
+      setCurrentStopIndex(
+        (current) => current + 1,
+      );
+    }, [isRouteCompleted]);
 
   const handleNextStop = useCallback((): void => {
     if (
@@ -470,6 +485,12 @@ export default function HomeScreen() {
             />
           )}
       </MapView>
+      <StopReachedBanner
+        isVisible={isStopReachedVisible}
+        placeName={reachedPlaceName}
+        isRouteCompleted={isRouteCompleted}
+        onContinue={handleContinueAfterReached}
+      />
       <RouteOverviewCard
         waypoints={selectedWaypoints}
         segments={routeSegments}
@@ -492,13 +513,11 @@ export default function HomeScreen() {
       />
 
       <ActiveRouteCard
-        isVisible={isRouteActive}
+        isVisible={isRouteActive && !isStopReachedVisible}
         currentStopIndex={currentStopIndex}
         waypoints={selectedWaypoints}
         segments={routeSegments}
-        distanceToNextStopMeters={
-          distanceToNextStopMeters
-        }
+        distanceToNextStopMeters={distanceToNextStopMeters}
         locationError={navigationLocationError}
         onNextStop={handleNextStop}
         onStopRoute={handleStopRoute}

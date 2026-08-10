@@ -133,6 +133,8 @@ const daDK = {
     "Du er nået frem til næste stop.",
 
   "Fortsæt": "Fortsæt",
+
+  "Færdig": "Færdig",
 } as const;
 
 export default daDK;

@@ -134,6 +134,8 @@ const enGB = {
 
   "Fortsæt": "Continue",
 
+  "Færdig": "Done",
+
 } as const;
 
 export default enGB;
