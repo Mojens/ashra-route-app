@@ -744,13 +744,13 @@ export default function HomeScreen() {
   if (!region) {
     return (
       <ImageBackground
-        source={require("../assets/images/location-loading.png")}
+        source={require("../../assets/images/location-loading.png")}
         style={styles.loadingBackground}
         resizeMode="cover"
       >
         <View style={styles.loadingOverlay}>
           <View className="items-center">
-            <Text className="text-3xl font-bold tracking-[6px] text-white">
+            <Text className="mt-5 text-3xl font-bold tracking-[6px] text-white">
               ASHRA
             </Text>
 
