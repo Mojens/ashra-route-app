@@ -19,6 +19,11 @@ import StopReachedBanner from "../components/StopReachedBanner";
 import { generateRouteFromPosition } from "../services/routeService";
 
 export default function HomeScreen() {
+  // DEV STATES
+  const [isDevOffRoute, setIsDevOffRoute] =
+    useState(false);
+  //
+
   // Reached banner state
   const [isStopReachedVisible, setIsStopReachedVisible] =
     useState(false);
@@ -126,10 +131,11 @@ export default function HomeScreen() {
     }
   };
 
-  // Test simulation function til sidst
+  // DEV TEST
   const simulateDestinationReached = () => {
     handleDestinationReached();
   };
+  //
 
   const handleReroute = async (): Promise<void> => {
     if (
@@ -191,7 +197,10 @@ export default function HomeScreen() {
        * nuværende position.
        */
       setCurrentStopIndex(0);
-
+      if (__DEV__) {
+        setIsDevOffRoute(false);
+      }
+      
       if (route.coordinates.length > 0) {
         mapRef.current?.fitToCoordinates(
           [
@@ -357,6 +366,11 @@ export default function HomeScreen() {
     onDestinationReached:
       handleDestinationReached,
   });
+
+  // DEV TEST
+  const shouldShowOffRoute =
+    isOffRoute || (__DEV__ && isDevOffRoute);
+  // DEV TEST
 
   useEffect(() => {
     if (!isRouteActive) {
@@ -672,6 +686,41 @@ export default function HomeScreen() {
           )}
       </MapView>
 
+      {/* DEV: simulér stop nået */}
+      {__DEV__ && isRouteActive && (
+        <Pressable
+          onPress={simulateDestinationReached}
+          className="absolute bottom-40 right-4 z-50 rounded-xl bg-purple-600 px-4 py-3"
+        >
+          <Text className="font-bold text-white">
+            Test stop nået
+          </Text>
+        </Pressable>
+      )}
+
+      {/* DEV: simulér off-route */}
+      {__DEV__ && isRouteActive && (
+        <Pressable
+          onPress={() =>
+            setIsDevOffRoute(
+              (current) => !current,
+            )
+          }
+          className={[
+            "absolute bottom-56 right-4 z-50 rounded-xl px-4 py-3",
+            isDevOffRoute
+              ? "bg-green-600"
+              : "bg-purple-600",
+          ].join(" ")}
+        >
+          <Text className="font-bold text-white">
+            {isDevOffRoute
+              ? "Test: På ruten"
+              : "Test: Off-route"}
+          </Text>
+        </Pressable>
+      )}
+
       <StopReachedBanner
         isVisible={isStopReachedVisible}
         placeName={reachedPlaceName}
@@ -712,7 +761,7 @@ export default function HomeScreen() {
           distanceToNextStopMeters
         }
         locationError={navigationLocationError}
-        isOffRoute={isOffRoute}
+        isOffRoute={shouldShowOffRoute} //isOffRoute={isOffRoute} dette var original
         isRerouting={isRerouting}
         onReroute={handleReroute}
         onNextStop={handleNextStop}
