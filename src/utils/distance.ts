@@ -60,3 +60,27 @@ export function findNearestPointOfInterest(
             : nearest;
     });
 }
+
+export function calculateDistanceToRouteMeters(
+    position: RouteCoordinate,
+    routeCoordinates: RouteCoordinate[],
+): number | null {
+    if (routeCoordinates.length === 0) {
+        return null;
+    }
+
+    let shortestDistance = Infinity;
+
+    for (const routeCoordinate of routeCoordinates) {
+        const distance = calculateDistanceMeters(
+            position,
+            routeCoordinate,
+        );
+
+        if (distance < shortestDistance) {
+            shortestDistance = distance;
+        }
+    }
+
+    return shortestDistance;
+}

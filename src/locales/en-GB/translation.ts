@@ -136,6 +136,12 @@ const enGB = {
 
   "Færdig": "Done",
 
+  "Du er gået væk fra ruten":
+  "You are off route",
+
+"Gå tilbage mod den markerede rute.":
+  "Head back towards the marked route.",
+
 } as const;
 
 export default enGB;

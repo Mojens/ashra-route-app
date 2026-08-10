@@ -135,6 +135,12 @@ const daDK = {
   "Fortsæt": "Fortsæt",
 
   "Færdig": "Færdig",
+
+  "Du er gået væk fra ruten":
+  "Du er gået væk fra ruten",
+
+"Gå tilbage mod den markerede rute.":
+  "Gå tilbage mod den markerede rute.",
 } as const;
 
 export default daDK;

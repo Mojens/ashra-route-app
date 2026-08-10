@@ -1,10 +1,10 @@
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { CATEGORY_LABELS } from "../constants";
 import { PointOfInterest, RouteSegment } from "../types/route";
-import { formatDistanceKm, formatDistance, formatDurationMinutes } from "../utils/format";
+import { formatDistance, formatDurationMinutes } from "../utils/format";
 import { getSegmentColor } from "../utils/routeColors";
-import { useTranslation } from "react-i18next";
 
 interface ActiveRouteCardProps {
   isVisible: boolean;
@@ -13,6 +13,7 @@ interface ActiveRouteCardProps {
   segments: RouteSegment[];
   distanceToNextStopMeters?: number | null;
   locationError?: string | null;
+  isOffRoute?: boolean;
   onNextStop: () => void;
   onStopRoute: () => void;
 }
@@ -24,10 +25,10 @@ export default function ActiveRouteCard({
   segments,
   distanceToNextStopMeters = null,
   locationError = null,
+  isOffRoute = false,
   onNextStop,
   onStopRoute,
 }: ActiveRouteCardProps) {
-  // i18n
   const { t } = useTranslation();
 
   if (!isVisible || segments.length === 0) {
@@ -47,7 +48,6 @@ export default function ActiveRouteCard({
       (distanceToNextStopMeters /
         currentSegment.distanceMeters)
       : currentSegment.durationSeconds;
-
 
   const isReturnToStart =
     currentStopIndex >= waypoints.length;
@@ -84,7 +84,7 @@ export default function ActiveRouteCard({
 
               {destination && (
                 <Text className="mt-1 text-sm text-slate-500">
-                  Stop {currentStopIndex + 1} ·{" "}
+                  {t("Stop")} {currentStopIndex + 1} ·{" "}
                   {t(CATEGORY_LABELS[destination.category])}
                 </Text>
               )}
@@ -116,19 +116,16 @@ export default function ActiveRouteCard({
 
                 <Text className="mt-1 text-lg font-bold text-slate-900">
                   {distanceToNextStopMeters !== null
-                    ? formatDistance(distanceToNextStopMeters)
-                    : formatDistance(currentSegment.distanceMeters)}
+                    ? formatDistance(
+                      distanceToNextStopMeters,
+                    )
+                    : formatDistance(
+                      currentSegment.distanceMeters,
+                    )}
                 </Text>
               </View>
             )}
 
-            {locationError && (
-              <View className="mt-3 rounded-xl bg-red-50 p-3">
-                <Text className="text-sm text-red-700">
-                  {t("Din position kunne ikke opdateres.")}
-                </Text>
-              </View>
-            )}
             {!locationError && (
               <View className="items-end">
                 <Text className="text-xs uppercase text-slate-500">
@@ -143,6 +140,28 @@ export default function ActiveRouteCard({
               </View>
             )}
           </View>
+
+          {locationError && (
+            <View className="mt-3 rounded-xl bg-red-50 p-3">
+              <Text className="text-sm text-red-700">
+                {t("Din position kunne ikke opdateres.")}
+              </Text>
+            </View>
+          )}
+
+          {isOffRoute && (
+            <View className="mt-3 rounded-2xl bg-orange-50 p-3">
+              <Text className="font-semibold text-orange-700">
+                {t("Du er gået væk fra ruten")}
+              </Text>
+
+              <Text className="mt-1 text-sm text-orange-600">
+                {t(
+                  "Gå tilbage mod den markerede rute.",
+                )}
+              </Text>
+            </View>
+          )}
 
           <View className="mt-4 flex-row gap-3">
             <Pressable

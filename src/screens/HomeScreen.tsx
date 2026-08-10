@@ -252,14 +252,18 @@ export default function HomeScreen() {
   const {
     currentPosition,
     distanceToNextStopMeters,
+    distanceFromRouteMeters,
+    isOffRoute,
     locationError: navigationLocationError,
     heading,
   } = useActiveRouteNavigation({
     isActive: isRouteActive,
     currentStopIndex,
     segments: routeSegments,
-    onDestinationReached: handleDestinationReached,
+    onDestinationReached:
+      handleDestinationReached,
   });
+
   useEffect(() => {
     if (!isRouteActive) {
       return;
@@ -602,12 +606,18 @@ export default function HomeScreen() {
       />
 
       <ActiveRouteCard
-        isVisible={isRouteActive && !isStopReachedVisible}
+        isVisible={
+          isRouteActive &&
+          !isStopReachedVisible
+        }
         currentStopIndex={currentStopIndex}
         waypoints={selectedWaypoints}
         segments={routeSegments}
-        distanceToNextStopMeters={distanceToNextStopMeters}
+        distanceToNextStopMeters={
+          distanceToNextStopMeters
+        }
         locationError={navigationLocationError}
+        isOffRoute={isOffRoute}
         onNextStop={handleNextStop}
         onStopRoute={handleStopRoute}
       />

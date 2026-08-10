@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import * as Location from "expo-location";
 import { ROUTE_CONFIG } from "../constants";
 import { RouteCoordinate, RouteSegment } from "../types/route";
-import { calculateDistanceMeters } from "../utils/distance";
+import { calculateDistanceToRouteMeters, calculateDistanceMeters } from "../utils/distance";
 
 interface UseActiveRouteNavigationOptions {
   isActive: boolean;
@@ -17,6 +17,10 @@ export function useActiveRouteNavigation({
   segments,
   onDestinationReached,
 }: UseActiveRouteNavigationOptions) {
+  const [distanceFromRouteMeters, setDistanceFromRouteMeters] = useState<number | null>(null);
+
+  const [isOffRoute, setIsOffRoute] = useState(false);
+
   const hasReachedCurrentDestinationRef =
     useRef(false);
 
@@ -40,6 +44,8 @@ export function useActiveRouteNavigation({
 
   useEffect(() => {
     if (!isActive) {
+      setDistanceFromRouteMeters(null);
+      setIsOffRoute(false);
       setHeading(null);
       return;
     }
@@ -153,6 +159,24 @@ export function useActiveRouteNavigation({
 
               setDistanceToNextStopMeters(distance);
 
+              const distanceFromRoute =
+                calculateDistanceToRouteMeters(
+                  position,
+                  currentSegment.coordinates,
+                );
+
+              setDistanceFromRouteMeters(
+                distanceFromRoute,
+              );
+
+              const offRoute =
+                distanceFromRoute !== null &&
+                distanceFromRoute >
+                ROUTE_CONFIG.navigation
+                  .offRouteDistanceMeters;
+
+              setIsOffRoute(offRoute);
+
               const hasReachedDestination =
                 distance <=
                 ROUTE_CONFIG.navigation
@@ -201,6 +225,8 @@ export function useActiveRouteNavigation({
   return {
     currentPosition,
     distanceToNextStopMeters,
+    distanceFromRouteMeters,
+    isOffRoute,
     locationError,
     heading,
   };
