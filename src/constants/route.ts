@@ -32,4 +32,9 @@ export const ROUTE_CONFIG = {
     timeoutMs: 15000,
     queryTimeoutSeconds: 20,
   },
+
+  navigation: {
+    distanceIntervalMeters: 10,
+    timeIntervalMs: 3000,
+  },
 } as const;

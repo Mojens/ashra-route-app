@@ -13,3 +13,13 @@ export function formatDurationMinutes(
 ): string {
   return `${Math.round(durationSeconds / 60)} min`;
 }
+
+export function formatDistance(
+  distanceMeters: number,
+): string {
+  if (distanceMeters < 1000) {
+    return `${Math.round(distanceMeters)} m`;
+  }
+
+  return `${(distanceMeters / 1000).toFixed(1)} km`;
+}

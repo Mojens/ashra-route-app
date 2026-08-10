@@ -118,6 +118,11 @@ const daDK = {
     "Tilpas appen til dine præferencer.",
 
   "Rute": "Rute",
+
+  "Til næste stop": "Til næste stop",
+
+  "Din position kunne ikke opdateres.":
+    "Din position kunne ikke opdateres.",
 } as const;
 
 export default daDK;

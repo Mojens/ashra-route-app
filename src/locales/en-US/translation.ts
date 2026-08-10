@@ -116,6 +116,11 @@ const enUS = {
 
   "Tilpas appen til dine præferencer.":
     "Customize the app to your preferences.",
+
+  "Til næste stop": "To next stop",
+
+  "Din position kunne ikke opdateres.":
+    "Your location could not be updated.",
 } as const;
 
 export default enUS;

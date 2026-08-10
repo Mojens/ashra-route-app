@@ -1,14 +1,8 @@
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CATEGORY_LABELS } from "../constants";
-import {
-  PointOfInterest,
-  RouteSegment,
-} from "../types/route";
-import {
-  formatDistanceKm,
-  formatDurationMinutes,
-} from "../utils/format";
+import { PointOfInterest, RouteSegment } from "../types/route";
+import { formatDistanceKm, formatDistance, formatDurationMinutes } from "../utils/format";
 import { getSegmentColor } from "../utils/routeColors";
 import { useTranslation } from "react-i18next";
 
@@ -17,6 +11,8 @@ interface ActiveRouteCardProps {
   currentStopIndex: number;
   waypoints: PointOfInterest[];
   segments: RouteSegment[];
+  distanceToNextStopMeters?: number | null;
+  locationError?: string | null;
   onNextStop: () => void;
   onStopRoute: () => void;
 }
@@ -26,6 +22,8 @@ export default function ActiveRouteCard({
   currentStopIndex,
   waypoints,
   segments,
+  distanceToNextStopMeters = null,
+  locationError = null,
   onNextStop,
   onStopRoute,
 }: ActiveRouteCardProps) {
@@ -99,29 +97,42 @@ export default function ActiveRouteCard({
           </View>
 
           <View className="mt-4 flex-row justify-between rounded-2xl bg-slate-50 p-4">
-            <View>
-              <Text className="text-xs uppercase text-slate-500">
-                {t("Distance")}
-              </Text>
+            {!locationError && (
+              <View>
+                <Text className="text-xs uppercase text-slate-500">
+                  {distanceToNextStopMeters !== null
+                    ? t("Til næste stop")
+                    : t("Distance")}
+                </Text>
 
-              <Text className="mt-1 text-lg font-bold text-slate-900">
-                {formatDistanceKm(
-                  currentSegment.distanceMeters,
-                )}
-              </Text>
-            </View>
+                <Text className="mt-1 text-lg font-bold text-slate-900">
+                  {distanceToNextStopMeters !== null
+                    ? formatDistance(distanceToNextStopMeters)
+                    : formatDistance(currentSegment.distanceMeters)}
+                </Text>
+              </View>
+            )}
 
-            <View className="items-end">
-              <Text className="text-xs uppercase text-slate-500">
-                {t("Estimeret tid")}
-              </Text>
+            {locationError && (
+              <View className="mt-3 rounded-xl bg-red-50 p-3">
+                <Text className="text-sm text-red-700">
+                  {t("Din position kunne ikke opdateres.")}
+                </Text>
+              </View>
+            )}
+            {!locationError && (
+              <View className="items-end">
+                <Text className="text-xs uppercase text-slate-500">
+                  {t("Estimeret tid")}
+                </Text>
 
-              <Text className="mt-1 text-lg font-bold text-slate-900">
-                {formatDurationMinutes(
-                  currentSegment.durationSeconds,
-                )}
-              </Text>
-            </View>
+                <Text className="mt-1 text-lg font-bold text-slate-900">
+                  {formatDurationMinutes(
+                    currentSegment.durationSeconds,
+                  )}
+                </Text>
+              </View>
+            )}
           </View>
 
           <View className="mt-4 flex-row gap-3">

@@ -117,7 +117,12 @@ const enGB = {
   "Tilpas appen til dine præferencer.":
     "Customize the app to your preferences.",
 
-    "Rute": "Route",
+  "Rute": "Route",
+
+  "Til næste stop": "To next stop",
+
+  "Din position kunne ikke opdateres.":
+    "Your location could not be updated.",
 
 } as const;
 

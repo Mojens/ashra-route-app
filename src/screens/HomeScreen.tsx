@@ -32,6 +32,7 @@ import ActiveRouteCard from "../components/ActiveRouteCard";
 import RouteSuggestionsModal from "../components/RouteSuggestionsModal";
 import { GeneratedRoutePlan } from "../services/routePlanner";
 import { useTranslation } from "react-i18next";
+import { useActiveRouteNavigation } from "../hooks/useActiveRouteNavigation";
 
 export default function HomeScreen() {
   // i18n
@@ -173,6 +174,33 @@ export default function HomeScreen() {
     isBusy,
     errorMessage: routePlannerError,
   } = useRoutePlanner();
+
+  // Active route navigation state
+  const {
+    currentPosition,
+    distanceToNextStopMeters,
+    locationError: navigationLocationError,
+  } = useActiveRouteNavigation({
+    isActive: isRouteActive,
+    currentStopIndex,
+    segments: routeSegments,
+  });
+  useEffect(() => {
+  if (!isRouteActive) {
+    return;
+  }
+
+  console.log("Live navigation:", {
+    currentPosition,
+    distanceToNextStopMeters,
+    navigationLocationError,
+  });
+}, [
+  currentPosition,
+  distanceToNextStopMeters,
+  navigationLocationError,
+  isRouteActive,
+]);
 
   useEffect(() => {
     void loadCurrentLocation();
@@ -436,6 +464,10 @@ export default function HomeScreen() {
         currentStopIndex={currentStopIndex}
         waypoints={selectedWaypoints}
         segments={routeSegments}
+        distanceToNextStopMeters={
+          distanceToNextStopMeters
+        }
+        locationError={navigationLocationError}
         onNextStop={handleNextStop}
         onStopRoute={handleStopRoute}
       />
